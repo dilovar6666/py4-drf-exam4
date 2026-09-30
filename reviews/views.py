@@ -30,6 +30,11 @@ class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
             return [AllowAny()]
         return [IsAuthenticated()]
 
+    def get_queryset(self):
+        if self.request.method == "GET":
+            return Review.objects.all()
+        return Review.objects.filter(user=self.request.user)
+
 
 class PharmacyReviewsView(APIView):
     def get(self, request, pharmacy_id):
