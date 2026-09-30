@@ -5,12 +5,7 @@ from rest_framework.views import APIView
 
 from .filters import filter_medicines, get_available_medicine_pharmacies
 from .models import Category, Medicine, PharmacyMedicine, PriceHistory
-from .serializers import (
-    CategorySerializer,
-    MedicineSerializer,
-    PharmacyMedicineSerializer,
-    PriceHistorySerializer,
-)
+from .serializers import *
 
 
 class CategoryListCreateView(generics.ListCreateAPIView):

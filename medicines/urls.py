@@ -1,19 +1,6 @@
 from django.urls import path
 
-from .views import (
-    CategoryDetailView,
-    CategoryListCreateView,
-    MedicineBarcodeView,
-    MedicineDetailView,
-    MedicineListCreateView,
-    MedicinePharmaciesView,
-    MedicineSearchView,
-    PharmacyMedicineDetailView,
-    PharmacyMedicineListCreateView,
-    PriceHistoryDetailView,
-    PriceHistoryListCreateView,
-)
-
+from .views import *
 
 urlpatterns = [
     path("categories/", CategoryListCreateView.as_view()),
