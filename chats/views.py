@@ -2,6 +2,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .filters import get_chat_messages
 from .models import Chat, Message
 from .serializers import ChatSerializer, MessageSerializer
 
@@ -28,6 +29,6 @@ class MessageDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class ChatMessagesView(APIView):
     def get(self, request, chat_id):
-        messages = Message.objects.filter(chat_id=chat_id).order_by("created_at")
+        messages = get_chat_messages(chat_id)
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)

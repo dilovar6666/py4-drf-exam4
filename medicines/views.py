@@ -3,6 +3,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .filters import filter_medicines, get_available_medicine_pharmacies
 from .models import Category, Medicine, PharmacyMedicine, PriceHistory
 from .serializers import (
     CategorySerializer,
@@ -54,11 +55,7 @@ class PriceHistoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class MedicineSearchView(APIView):
     def get(self, request):
-        name = request.GET.get("name")
-        if name:
-            medicines = Medicine.objects.filter(name__icontains=name)
-        else:
-            medicines = Medicine.objects.all()
+        medicines = filter_medicines(request)
         serializer = MedicineSerializer(medicines, many=True)
         return Response(serializer.data)
 
@@ -72,9 +69,6 @@ class MedicineBarcodeView(APIView):
 
 class MedicinePharmaciesView(APIView):
     def get(self, request, medicine_id):
-        pharmacy_medicines = PharmacyMedicine.objects.filter(
-            medicine_id=medicine_id,
-            quantity__gt=0,
-        ).order_by("price")
+        pharmacy_medicines = get_available_medicine_pharmacies(medicine_id)
         serializer = PharmacyMedicineSerializer(pharmacy_medicines, many=True)
         return Response(serializer.data)
