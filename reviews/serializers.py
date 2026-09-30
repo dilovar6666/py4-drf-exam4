@@ -7,6 +7,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = "__all__"
+        extra_kwargs = {"user": {"read_only": True}}
 
     def validate_rating(self, value):
         if value < 1 or value > 5:

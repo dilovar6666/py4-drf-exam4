@@ -7,3 +7,4 @@ class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = "__all__"
+        extra_kwargs = {"user": {"read_only": True}}
