@@ -47,3 +47,17 @@ The implementation combines A as the desktop shell, B as the selected-pharmacy s
 - Mobile map-first: `f1efef13a9a8484ba5feec2dc010968e`
 
 Stitch is treated as the product designer. Its generated HTML is not copied into the repository; the selected composition, tokens, hierarchy and interaction patterns are implemented as React components against the existing API.
+
+## Admin, inventory and ratings expansion — 2026-10-01
+
+Stitch was run again against the same project and the `PharmaMap Calm Clinical Precision` design system. The generation used `GEMINI_3_5_FLASH_LITE` after the first provider attempts timed out.
+
+- Admin Dashboard — `dfeb79d0a19549f1aeef0ec3d516c462`
+- Pharmacy Management — `c78e12b5919d49569c4873455bb51daf`
+- Medicine Management — `c6dc4ac81086419f89bb2776e9b8955a`
+- Inventory & Prices Management — `cd354a9469984741aefe61404f749642`
+- Pharmacist Rating Profile — `7914462e5db54ae3ac64a185f8563c8b`
+- Reservation Management — Stitch session `14774492221645317173` completed, but the connector response did not expose a screen ID.
+- Public Leaderboard — Stitch session `4943795742611323719` completed, but the connector response did not expose a screen ID.
+
+The generated screens were used as product-design references, not copied as application code. The React implementation carries over the fixed role-aware sidebar, factual KPI hierarchy, compact management tables, semantic status badges, low-stock emphasis, explicit TJS pricing, separate pharmacy/pharmacist rankings, and pharmacist-specific review transparency. Generated placeholder metrics, unsupported clinical fields and fictional revenue were deliberately excluded; all UI values come from the existing API.

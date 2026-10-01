@@ -5,6 +5,11 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; min-height: 100vh; }
+@media (max-width: 767px) {
+  body:has(nav.fixed.inset-x-0.bottom-0) [class~="z-[650]"] {
+    bottom: calc(4.75rem + env(safe-area-inset-bottom)) !important;
+  }
+}
 button, input, textarea, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 .leaflet-container { font-family: inherit; }

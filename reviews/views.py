@@ -39,6 +39,8 @@ class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         if self.request.method == "GET":
             return Review.objects.all()
+        if self.request.user.is_staff:
+            return Review.objects.all()
         return Review.objects.filter(user=self.request.user)
 
 

@@ -10,7 +10,7 @@ from medicines.models import Category, Medicine, PharmacyMedicine, PriceHistory
 from notifications.models import Notification, StockNotification
 from pharmacies.models import Pharmacy, PharmacyWorker
 from reservations.models import Reservation
-from reviews.models import Review
+from reviews.models import PharmacistReview, Review
 
 
 class Command(BaseCommand):
@@ -25,6 +25,7 @@ class Command(BaseCommand):
         inventory = self.create_inventory(pharmacies, medicines)
         self.create_price_history(inventory)
         self.create_reviews(users, pharmacies)
+        self.create_pharmacist_reviews(users)
         self.create_reservations(users, inventory)
         self.create_chats(users, pharmacies, medicines)
         self.create_notifications(users, pharmacies, medicines)
@@ -262,6 +263,24 @@ class Command(BaseCommand):
             )
             Reservation.objects.filter(pk=reservation.pk).update(created_at=now - timedelta(days=index % 6))
 
+    def create_pharmacist_reviews(self, users):
+        rows = (
+            ("user1", "pharmacist1", 5, "Вежливо объяснил наличие и быстро подготовил бронь."),
+            ("user2", "pharmacist1", 4, "Ответил на вопросы по ассортименту."),
+            ("user3", "pharmacist2", 5, "Очень внимательное обслуживание."),
+            ("user4", "pharmacist2", 3, "Пришлось немного подождать ответа."),
+            ("user1", "pharmacist3", 4, "Быстро подтвердил остаток в аптеке."),
+            ("user2", "pharmacist4", 5, "Помог найти нужную упаковку."),
+            ("user3", "pharmacist5", 4, "Хорошее и спокойное обслуживание."),
+            ("user4", "pharmacist6", 5, "Бронь была готова вовремя."),
+        )
+        for username, pharmacist_name, rating, text in rows:
+            PharmacistReview.objects.update_or_create(
+                user=users[username],
+                pharmacist=users[pharmacist_name],
+                defaults={"rating": rating, "text": text},
+            )
+
     def create_chats(self, users, pharmacies, medicines):
         dialogues = (
             ("Здравствуйте, есть ли этот препарат?", "Да, сейчас есть 4 упаковки.", "Можно отложить одну?"),
@@ -318,6 +337,7 @@ class Command(BaseCommand):
             "inventory": PharmacyMedicine.objects.count(),
             "price history": PriceHistory.objects.count(),
             "reviews": Review.objects.count(),
+            "pharmacist reviews": PharmacistReview.objects.count(),
             "reservations": Reservation.objects.count(),
             "chats": Chat.objects.count(),
             "messages": Message.objects.count(),
