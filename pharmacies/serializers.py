@@ -7,6 +7,8 @@ from .models import Pharmacy, PharmacyWorker
 class PharmacySerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
+    available_medicines = serializers.SerializerMethodField()
+    completed_reservations = serializers.SerializerMethodField()
 
     def get_rating(self, obj):
         value = obj.review_set.aggregate(value=Avg("rating"))["value"]
@@ -14,6 +16,16 @@ class PharmacySerializer(serializers.ModelSerializer):
 
     def get_review_count(self, obj):
         return obj.review_set.count()
+
+    def get_available_medicines(self, obj):
+        return obj.pharmacymedicine_set.filter(quantity__gt=0).count()
+
+    def get_completed_reservations(self, obj):
+        from reservations.models import Reservation
+        return Reservation.objects.filter(
+            pharmacy_medicine__pharmacy=obj,
+            status=Reservation.Status.COMPLETED,
+        ).count()
 
     class Meta:
         model = Pharmacy
