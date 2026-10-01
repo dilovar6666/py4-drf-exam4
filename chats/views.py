@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .filters import get_chat_messages
+from .filters import get_chat_messages, get_user_chats
 from .models import Chat, Message
 from .serializers import ChatSerializer, MessageSerializer
 
@@ -14,9 +14,11 @@ class ChatListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Chat.objects.filter(user=self.request.user)
+        return get_user_chats(self.request.user)
 
     def perform_create(self, serializer):
+        if self.request.user.role == "pharmacist" and not self.request.user.is_staff:
+            raise PermissionDenied("Pharmacists reply to existing pharmacy chats.")
         serializer.save(user=self.request.user)
 
 
@@ -25,7 +27,7 @@ class ChatDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Chat.objects.filter(user=self.request.user)
+        return get_user_chats(self.request.user)
 
 
 class MessageListCreateView(generics.ListCreateAPIView):
@@ -33,10 +35,12 @@ class MessageListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Message.objects.filter(chat__user=self.request.user)
+        return Message.objects.filter(chat__in=get_user_chats(self.request.user))
 
     def perform_create(self, serializer):
-        if serializer.validated_data["chat"].user != self.request.user:
+        if not get_user_chats(self.request.user).filter(
+            pk=serializer.validated_data["chat"].pk
+        ).exists():
             raise PermissionDenied("You cannot send messages to this chat.")
         serializer.save(sender=self.request.user)
 
@@ -46,7 +50,7 @@ class MessageDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Message.objects.filter(chat__user=self.request.user)
+        return Message.objects.filter(chat__in=get_user_chats(self.request.user))
 
 
 class ChatMessagesView(APIView):

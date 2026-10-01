@@ -6,7 +6,11 @@ from .models import CustomUser
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ("id", "username", "email", "phone", "role", "avatar", "created_at")
+        fields = (
+            "id", "username", "email", "phone", "role", "avatar",
+            "is_staff", "created_at",
+        )
+        read_only_fields = ("role", "is_staff", "created_at")
 
 
 class RegisterSerializer(serializers.ModelSerializer):

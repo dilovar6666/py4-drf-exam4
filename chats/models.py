@@ -10,6 +10,14 @@ class Chat(models.Model):
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "pharmacy"),
+                name="unique_user_pharmacy_chat",
+            )
+        ]
+
     def __str__(self):
         return f"{self.user} - {self.pharmacy}"
 
