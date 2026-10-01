@@ -1,18 +1,25 @@
+import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
+import Footer from "./components/Footer";
+import MobileNav from "./components/MobileNav";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PageState from "./components/ui/PageState";
 import AuthProvider from "./context/AuthContext";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import MedicinePage from "./pages/MedicinePage";
-import NotFoundPage from "./pages/NotFoundPage";
-import PharmacyPage from "./pages/PharmacyPage";
-import ProfilePage from "./pages/ProfilePage";
-import RegisterPage from "./pages/RegisterPage";
-import ReservationsPage from "./pages/ReservationsPage";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const MedicinePage = lazy(() => import("./pages/MedicinePage"));
+const PharmacyPage = lazy(() => import("./pages/PharmacyPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const ReservationsPage = lazy(() => import("./pages/ReservationsPage"));
+const ChatsPage = lazy(() => import("./pages/ChatsPage"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+
+const protectedPage = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 export default function App() {
-  return (
-    <AuthProvider><div className="min-h-screen bg-stone-50 text-slate-900"><Navbar /><main><Routes><Route path="/" element={<HomePage />} /><Route path="/login" element={<LoginPage />} /><Route path="/register" element={<RegisterPage />} /><Route path="/medicines/:id" element={<MedicinePage />} /><Route path="/pharmacies/:id" element={<PharmacyPage />} /><Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} /><Route path="/reservations" element={<ProtectedRoute><ReservationsPage /></ProtectedRoute>} /><Route path="*" element={<NotFoundPage />} /></Routes></main></div></AuthProvider>
-  );
+  return <AuthProvider><div className="min-h-screen bg-[#f7f9f8] text-slate-900"><Navbar /><main><Suspense fallback={<PageState type="loading" />}><Routes><Route path="/" element={<HomePage />} /><Route path="/login" element={<LoginPage />} /><Route path="/register" element={<RegisterPage />} /><Route path="/medicines/:id" element={<MedicinePage />} /><Route path="/pharmacies/:id" element={<PharmacyPage />} /><Route path="/profile" element={protectedPage(<ProfilePage />)} /><Route path="/reservations" element={protectedPage(<ReservationsPage />)} /><Route path="/chats" element={protectedPage(<ChatsPage />)} /><Route path="/notifications" element={protectedPage(<NotificationsPage />)} /><Route path="*" element={<NotFoundPage />} /></Routes></Suspense></main><Footer /><MobileNav /></div></AuthProvider>;
 }

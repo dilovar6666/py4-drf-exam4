@@ -1,0 +1,22 @@
+import { Bell, Check, PackageSearch } from "lucide-react";
+import { useEffect, useState } from "react";
+import api from "../api/axios";
+import PageHeader from "../components/PageHeader";
+import Badge from "../components/ui/Badge";
+import Button from "../components/ui/Button";
+import { Card, CardContent } from "../components/ui/Card";
+import PageState from "../components/ui/PageState";
+
+export default function NotificationsPage() {
+  const [notifications, setNotifications] = useState([]);
+  const [stockAlerts, setStockAlerts] = useState([]);
+  const [medicines, setMedicines] = useState({});
+  const [status, setStatus] = useState("loading");
+  useEffect(() => { let active = true; Promise.all([api.get("notifications/"), api.get("stock-notifications/"), api.get("medicines/")]).then(([notificationResponse, stockResponse, medicineResponse]) => { if (!active) return; setNotifications(notificationResponse.data); setStockAlerts(stockResponse.data); setMedicines(Object.fromEntries(medicineResponse.data.map((item) => [item.id, item]))); setStatus("ready"); }).catch(() => active && setStatus("error")); return () => { active = false; }; }, []);
+  async function markRead(notification) { if (notification.is_read) return; await api.patch(`notifications/${notification.id}/`, { is_read: true }); setNotifications((items) => items.map((item) => item.id === notification.id ? { ...item, is_read: true } : item)); }
+  async function markAllRead() { const unread = notifications.filter((item) => !item.is_read); await Promise.all(unread.map((item) => api.patch(`notifications/${item.id}/`, { is_read: true }))); setNotifications((items) => items.map((item) => ({ ...item, is_read: true }))); }
+  if (status === "loading") return <PageState type="loading" />;
+  if (status === "error") return <PageState type="error" message="Не удалось загрузить уведомления" />;
+  const unreadCount = notifications.filter((item) => !item.is_read).length;
+  return <div className="page-shell py-10 pb-28 sm:py-14"><PageHeader eyebrow="Центр событий" title="Уведомления" description="Подтверждения броней, ответы аптек и оповещения о наличии." actions={unreadCount > 0 && <Button variant="secondary" onClick={markAllRead}><Check className="size-4" />Прочитать все</Button>} /><div className="grid gap-6 lg:grid-cols-[1fr_340px]"><div className="space-y-3">{notifications.length ? notifications.map((notification) => <button key={notification.id} onClick={() => markRead(notification)} className="w-full text-left"><Card className={`transition hover:border-teal-200 ${!notification.is_read ? "border-teal-200 bg-teal-50/30" : ""}`}><CardContent className="flex gap-4 p-5"><span className={`relative grid size-11 shrink-0 place-items-center rounded-2xl ${notification.is_read ? "bg-slate-100 text-slate-500" : "bg-teal-100 text-teal-800"}`}><Bell className="size-5" />{!notification.is_read && <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border-2 border-white bg-blue-500" />}</span><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><h2 className="font-extrabold text-slate-950">{notification.title}</h2><time className="shrink-0 text-xs text-slate-400">{new Date(notification.created_at).toLocaleDateString("ru-RU")}</time></div><p className="mt-1 text-sm leading-6 text-slate-500">{notification.message}</p></div></CardContent></Card></button>) : <Card><PageState type="empty" message="Новых уведомлений нет" /></Card>}</div><Card className="h-fit lg:sticky lg:top-24"><CardContent className="p-6"><div className="flex items-center justify-between"><h2 className="font-extrabold text-slate-950">О наличии</h2><Badge variant="blue">{stockAlerts.length}</Badge></div><p className="mt-2 text-sm leading-6 text-slate-500">Активные подписки на появление препаратов.</p><div className="mt-5 space-y-3">{stockAlerts.length ? stockAlerts.map((alert) => <div key={alert.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3"><span className="grid size-9 place-items-center rounded-xl bg-white text-teal-700"><PackageSearch className="size-4" /></span><div><p className="text-sm font-bold text-slate-800">{medicines[alert.medicine]?.name || "Лекарство"}</p><p className="text-xs text-slate-500">{alert.is_active ? "Оповещение активно" : "Отключено"}</p></div></div>) : <p className="text-sm text-slate-500">Нет активных подписок.</p>}</div></CardContent></Card></div></div>;
+}
