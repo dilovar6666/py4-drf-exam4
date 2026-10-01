@@ -57,7 +57,7 @@ export default function HomePage() {
     } catch { setSearchStatus("error"); }
   }
 
-  function selectPharmacy(id) { setSelectedPharmacyId(id); setSheetState("half"); }
+  function selectPharmacy(id) { setSelectedPharmacyId(id); sessionStorage.setItem("chat_pharmacy_id", String(id)); setSheetState("half"); }
   const displayed = useMemo(() => pharmacies.filter((pharmacy) => (!selectedMedicine || offers[pharmacy.id]) && (!onlyAllDay || pharmacy.is_24_hours) && (!onlyOpen || isOpenNow(pharmacy))), [pharmacies, selectedMedicine, offers, onlyAllDay, onlyOpen]);
   const selectedPharmacy = pharmacies.find((pharmacy) => pharmacy.id === selectedPharmacyId);
   const sheetHeight = { collapsed: "h-[118px]", half: "h-[44vh]", expanded: "h-[76vh]" }[sheetState];
