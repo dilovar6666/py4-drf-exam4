@@ -14,3 +14,7 @@ def get_chat_messages(chat_id, user):
         chat_id=chat_id,
         chat__in=get_user_chats(user),
     ).order_by("created_at")
+
+
+def can_access_chat(user, chat_id):
+    return user.is_authenticated and get_user_chats(user).filter(pk=chat_id).exists()

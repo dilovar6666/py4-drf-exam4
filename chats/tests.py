@@ -1,9 +1,13 @@
 from django.contrib.auth import get_user_model
+from django.test import TransactionTestCase
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import AccessToken
+from channels.testing import WebsocketCommunicator
 
+from config.asgi import application
 from pharmacies.models import Pharmacy, PharmacyWorker
 
-from .models import Chat, Message
+from .models import Chat, ChatBlock, Message
 
 
 class ChatPermissionTests(APITestCase):
@@ -66,3 +70,64 @@ class ChatPermissionTests(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data["sender"], self.pharmacist.id)
 
+    def test_blocked_chat_rejects_new_message(self):
+        ChatBlock.objects.create(chat=self.chat, blocker=self.user, blocked=self.pharmacist)
+        self.client.force_authenticate(self.pharmacist)
+        response = self.client.post(
+            "/api/messages/", {"chat": self.chat.id, "text": "Blocked"}
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_participant_can_block_and_unblock(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.post(
+            "/api/chat-blocks/", {"chat": self.chat.id, "blocked": self.pharmacist.id}
+        )
+        self.assertEqual(response.status_code, 201)
+        delete = self.client.delete(f"/api/chat-blocks/{response.data['id']}/")
+        self.assertEqual(delete.status_code, 204)
+
+
+class ChatWebSocketTests(TransactionTestCase):
+    reset_sequences = True
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="ws-user", password="pass12345")
+        self.other = User.objects.create_user(username="ws-other", password="pass12345")
+        self.pharmacist = User.objects.create_user(
+            username="ws-pharmacist", password="pass12345", role="pharmacist"
+        )
+        self.pharmacy = Pharmacy.objects.create(
+            name="WS Pharmacy", address="Dushanbe", latitude=38.57, longitude=68.78
+        )
+        PharmacyWorker.objects.create(user=self.pharmacist, pharmacy=self.pharmacy)
+        self.chat = Chat.objects.create(user=self.user, pharmacy=self.pharmacy)
+
+    def socket(self, user, chat=None):
+        chat = chat or self.chat
+        token = str(AccessToken.for_user(user))
+        return WebsocketCommunicator(
+            application,
+            f"/ws/chats/{chat.id}/?token={token}",
+            headers=[(b"origin", b"http://localhost:5173"), (b"host", b"localhost")],
+        )
+
+    async def test_authorized_participants_receive_message(self):
+        sender = self.socket(self.user)
+        receiver = self.socket(self.pharmacist)
+        self.assertTrue((await sender.connect())[0])
+        self.assertTrue((await receiver.connect())[0])
+        await sender.send_json_to({"text": "Realtime hello"})
+        sent = await sender.receive_json_from()
+        received = await receiver.receive_json_from()
+        self.assertEqual(sent["message"]["text"], "Realtime hello")
+        self.assertEqual(received["message"]["text"], "Realtime hello")
+        await sender.disconnect()
+        await receiver.disconnect()
+
+    async def test_unauthorized_user_cannot_connect(self):
+        communicator = self.socket(self.other)
+        connected, close_code = await communicator.connect()
+        self.assertFalse(connected)
+        self.assertEqual(close_code, 4403)

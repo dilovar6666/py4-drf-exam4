@@ -32,3 +32,29 @@ class Message(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class ChatBlock(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name="blocks")
+    blocker = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="chat_blocks_created",
+    )
+    blocked = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="chat_blocks_received",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("chat", "blocker", "blocked"),
+                name="unique_chat_block_pair",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.blocker} blocked {self.blocked} in chat {self.chat_id}"
