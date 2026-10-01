@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from pharmacies.models import Pharmacy
@@ -29,9 +30,19 @@ class Medicine(models.Model):
 class PharmacyMedicine(models.Model):
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
+    )
     quantity = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("pharmacy", "medicine"),
+                name="unique_pharmacy_medicine",
+            )
+        ]
 
     def __str__(self):
         return f"{self.pharmacy} - {self.medicine}"

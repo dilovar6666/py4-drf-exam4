@@ -1,12 +1,19 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
-from rest_framework.permissions import AllowAny, IsAdminUser, SAFE_METHODS
+from rest_framework.permissions import AllowAny, BasePermission, IsAdminUser, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .filters import filter_medicines, get_available_medicine_pharmacies
 from .models import Category, Medicine, PharmacyMedicine, PriceHistory
 from .serializers import *
+
+
+class IsAdminOrPharmacist(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and (
+            request.user.is_staff or request.user.role == "pharmacist"
+        )
 
 
 class CategoryListCreateView(generics.ListCreateAPIView):
@@ -56,7 +63,15 @@ class PharmacyMedicineListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method in SAFE_METHODS:
             return [AllowAny()]
-        return [IsAdminUser()]
+        return [IsAdminOrPharmacist()]
+
+    def perform_create(self, serializer):
+        pharmacy = serializer.validated_data["pharmacy"]
+        user = self.request.user
+        if not user.is_staff and not pharmacy.pharmacyworker_set.filter(user=user).exists():
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Можно менять остатки только своей аптеки.")
+        serializer.save()
 
 
 class PharmacyMedicineDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -66,7 +81,13 @@ class PharmacyMedicineDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method in SAFE_METHODS:
             return [AllowAny()]
-        return [IsAdminUser()]
+        return [IsAdminOrPharmacist()]
+
+    def get_queryset(self):
+        queryset = PharmacyMedicine.objects.all()
+        if self.request.method not in SAFE_METHODS and not self.request.user.is_staff:
+            queryset = queryset.filter(pharmacy__pharmacyworker__user=self.request.user)
+        return queryset
 
 
 class PriceHistoryListCreateView(generics.ListCreateAPIView):

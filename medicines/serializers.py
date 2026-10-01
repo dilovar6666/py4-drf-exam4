@@ -20,6 +20,13 @@ class PharmacyMedicineSerializer(serializers.ModelSerializer):
         model = PharmacyMedicine
         fields = "__all__"
 
+    def validate_pharmacy(self, pharmacy):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated and request.user.role == "pharmacist":
+            if not pharmacy.pharmacyworker_set.filter(user=request.user).exists():
+                raise serializers.ValidationError("Можно выбрать только свою аптеку.")
+        return pharmacy
+
 
 class PriceHistorySerializer(serializers.ModelSerializer):
     class Meta:

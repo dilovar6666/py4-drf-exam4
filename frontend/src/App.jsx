@@ -4,6 +4,7 @@ import Footer from "./components/Footer";
 import MobileNav from "./components/MobileNav";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import StaffRoute from "./components/StaffRoute";
 import PageState from "./components/ui/PageState";
 import AuthProvider from "./context/AuthContext";
 
@@ -17,9 +18,10 @@ const ReservationsPage = lazy(() => import("./pages/ReservationsPage"));
 const ChatsPage = lazy(() => import("./pages/ChatsPage"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const AdminPanelPage = lazy(() => import("./pages/AdminPanelPage"));
 
 const protectedPage = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 export default function App() {
-  return <AuthProvider><div className="min-h-screen bg-[#f7f9f8] text-slate-900"><Navbar /><main><Suspense fallback={<PageState type="loading" />}><Routes><Route path="/" element={<HomePage />} /><Route path="/login" element={<LoginPage />} /><Route path="/register" element={<RegisterPage />} /><Route path="/medicines/:id" element={<MedicinePage />} /><Route path="/pharmacies/:id" element={<PharmacyPage />} /><Route path="/profile" element={protectedPage(<ProfilePage />)} /><Route path="/reservations" element={protectedPage(<ReservationsPage />)} /><Route path="/chats" element={protectedPage(<ChatsPage />)} /><Route path="/notifications" element={protectedPage(<NotificationsPage />)} /><Route path="*" element={<NotFoundPage />} /></Routes></Suspense></main><Footer /><MobileNav /></div></AuthProvider>;
+  return <AuthProvider><div className="min-h-screen bg-[#f7f9f8] text-slate-900"><Navbar /><main><Suspense fallback={<PageState type="loading" />}><Routes><Route path="/" element={<HomePage />} /><Route path="/login" element={<LoginPage />} /><Route path="/register" element={<RegisterPage />} /><Route path="/medicines/:id" element={<MedicinePage />} /><Route path="/pharmacies/:id" element={<PharmacyPage />} /><Route path="/profile" element={protectedPage(<ProfilePage />)} /><Route path="/reservations" element={protectedPage(<ReservationsPage />)} /><Route path="/chats" element={protectedPage(<ChatsPage />)} /><Route path="/notifications" element={protectedPage(<NotificationsPage />)} /><Route path="/admin-panel" element={<StaffRoute><AdminPanelPage /></StaffRoute>} /><Route path="*" element={<NotFoundPage />} /></Routes></Suspense></main><Footer /><MobileNav /></div></AuthProvider>;
 }
