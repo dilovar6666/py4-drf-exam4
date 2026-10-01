@@ -21,6 +21,16 @@ Design system: `assets/17285986900585481743` — **PharmaMap Calm Clinical Preci
 
 Chosen implementation: the refined split for desktop and map-first with a results sheet for mobile.
 
+## Audit redesign — full viewport map application
+
+New screens generated from the explicit concept “Google Maps-like map-first pharmacy discovery interface, full viewport canvas, fixed left place panel, floating top search, filter chips, map controls, selected pharmacy detail, but original PharmaMap visual identity”:
+
+1. **A — fixed 420px desktop sidebar + full map** — `d1e4f7da210f451e9f0846d44e33ae37`.
+2. **B — collapsible selected-place panel + full map** — `bce825b6792a4c43a25a31666ffaed0e`.
+3. **C — 390px mobile full map + floating search + bottom sheet** — `f4f11f7eb96d406e945eb45dd9f3942c`.
+
+The implementation combines A as the desktop shell, B as the selected-pharmacy state inside the same sidebar, and C as the mobile interaction model. Compared with the earlier 38/62 composition, the hero, marketing metrics, outer page shell, gutters and rounded map card are removed from Home. The map is now a true viewport canvas; list/detail navigation happens without moving it.
+
 ## Generated screens
 
 - Home / search / split map: `beaf2fe906d24ec2bdf615b30a185c68`
