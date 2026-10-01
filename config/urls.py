@@ -3,6 +3,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from .docs import openapi_schema, redoc, swagger_ui
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -13,6 +15,12 @@ urlpatterns = [
     path("api/", include("reviews.urls")),
     path("api/", include("chats.urls")),
     path("api/", include("notifications.urls")),
+]
+
+urlpatterns += [
+    path("api/schema/", openapi_schema, name="schema"),
+    path("api/docs/", swagger_ui, name="swagger-ui"),
+    path("api/redoc/", redoc, name="redoc"),
 ]
 
 if settings.DEBUG:
