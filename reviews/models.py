@@ -11,5 +11,13 @@ class Review(models.Model):
     text = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "pharmacy"),
+                name="unique_user_pharmacy_review",
+            )
+        ]
+
     def __str__(self):
         return f"{self.pharmacy} - {self.rating}"

@@ -48,10 +48,10 @@ export default function HomePage() {
     } catch { setSearchStatus("error"); }
   }
 
-  async function search(query) {
+  async function search(query, cachedResults) {
     setSearchStatus("loading"); setSelectedMedicine(null); setOffers({}); setSelectedPharmacyId(null);
     try {
-      const { data } = await api.get("medicines/search/", { params: { name: query } });
+      const data = cachedResults || (await api.get("medicines/search/", { params: { q: query } })).data;
       setMedicineResults(data); setSearchStatus("ready");
       if (data.length === 1) await selectMedicine(data[0]);
     } catch { setSearchStatus("error"); }
