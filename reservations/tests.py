@@ -70,6 +70,23 @@ class ReservationFlowTests(APITestCase):
         )
         self.assertEqual(response.status_code, 400)
 
+    def test_user_can_cancel_active_reservation(self):
+        reservation_id = self.create_reservation(2).data["id"]
+        response = self.client.patch(
+            f"/api/reservations/{reservation_id}/", {"status": "cancelled"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.stock.refresh_from_db()
+        self.assertEqual(self.stock.quantity, 5)
+
+    def test_user_cannot_cancel_completed_reservation(self):
+        reservation_id = self.create_reservation(1).data["id"]
+        Reservation.objects.filter(pk=reservation_id).update(status="completed")
+        response = self.client.patch(
+            f"/api/reservations/{reservation_id}/", {"status": "cancelled"}
+        )
+        self.assertEqual(response.status_code, 400)
+
     def test_pharmacist_can_change_status_only_for_own_pharmacy(self):
         reservation_id = self.create_reservation(1).data["id"]
         self.client.force_authenticate(self.pharmacist)
@@ -82,4 +99,3 @@ class ReservationFlowTests(APITestCase):
             f"/api/reservations/{reservation_id}/", {"status": "ready"}
         )
         self.assertEqual(denied.status_code, 404)
-

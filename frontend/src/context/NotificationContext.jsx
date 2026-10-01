@@ -21,6 +21,7 @@ export default function NotificationProvider({ children }) {
   useAuthenticatedSocket("/ws/notifications/", (event) => {
     if (event.type !== "notification") return;
     const item = event.notification;
+    window.dispatchEvent(new CustomEvent("notification:received", { detail: item }));
     setNotifications((current) => [item, ...current.filter((entry) => entry.id !== item.id)]);
     setToasts((current) => [...current, item]);
     window.setTimeout(() => setToasts((current) => current.filter((entry) => entry.id !== item.id)), 5000);
