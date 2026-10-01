@@ -3,7 +3,7 @@ from rest_framework.test import APITestCase
 
 from pharmacies.models import Pharmacy
 
-from .models import Review
+from .models import PharmacistReview, Review
 
 
 class ReviewPermissionTests(APITestCase):
@@ -32,3 +32,20 @@ class ReviewPermissionTests(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Review.objects.filter(user=self.user, pharmacy=self.pharmacy).count(), 1)
 
+
+class PharmacistReviewTests(APITestCase):
+    def test_one_user_can_leave_only_one_review_per_pharmacist(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="rate-user", password="pass12345")
+        pharmacist = User.objects.create_user(
+            username="rated-pharmacist", password="pass12345", role="pharmacist"
+        )
+        PharmacistReview.objects.create(user=user, pharmacist=pharmacist, rating=5)
+        self.client.force_authenticate(user)
+        response = self.client.post(
+            "/api/pharmacist-reviews/", {"pharmacist": pharmacist.id, "rating": 4}
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            PharmacistReview.objects.filter(user=user, pharmacist=pharmacist).count(), 1
+        )

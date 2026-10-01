@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
 from .models import Notification, StockNotification
 from .serializers import NotificationSerializer, StockNotificationSerializer
@@ -9,11 +9,15 @@ class NotificationListCreateView(generics.ListCreateAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsAdminUser()]
+        return [IsAuthenticated()]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Notification.objects.all()
+        return Notification.objects.filter(user=self.request.user)
 
 
 class NotificationDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -21,7 +25,14 @@ class NotificationDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if self.request.user.is_staff:
+            return Notification.objects.all()
         return Notification.objects.filter(user=self.request.user)
+
+    def get_permissions(self):
+        if self.request.method == "DELETE":
+            return [IsAdminUser()]
+        return [IsAuthenticated()]
 
 
 class StockNotificationListCreateView(generics.ListCreateAPIView):
