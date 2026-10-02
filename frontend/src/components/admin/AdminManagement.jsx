@@ -11,6 +11,7 @@ import { Card, CardContent } from "../ui/Card";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/Dialog";
 import Input from "../ui/Input";
 import PageState from "../ui/PageState";
+import ToggleSwitch from "../ui/ToggleSwitch";
 import { AdminHeading } from "./AdminDashboard";
 
 const resourceConfigs = {
@@ -82,7 +83,7 @@ function ResourceManager({ section, config, data, setData }) {
 }
 
 function Field({ name, label, type, value, data, onChange }) {
-  if (type === "checkbox") return <label className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold"><input type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} />{label}</label>;
+  if (type === "checkbox") return <div className="rounded-xl border border-slate-200 p-3"><ToggleSwitch variant="admin" checked={Boolean(value)} onChange={onChange} label={label} /></div>;
   const options = type === "category" ? data.categories : type === "pharmacy" ? data.pharmacies : type === "medicine" ? data.medicines : null;
   if (options) return <label className="text-sm font-semibold text-slate-700">{label}<select value={value || ""} onChange={(event) => onChange(Number(event.target.value))} className="focus-ring mt-2 min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3"><option value="">Выберите</option>{options.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>;
   if (type === "role") return <label className="text-sm font-semibold text-slate-700">{label}<select value={value || "user"} onChange={(event) => onChange(event.target.value)} className="focus-ring mt-2 min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3"><option value="user">Пользователь</option><option value="pharmacist">Фармацевт</option></select></label>;

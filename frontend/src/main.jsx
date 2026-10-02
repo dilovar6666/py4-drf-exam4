@@ -4,11 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import "./index.css";
 import App from "./App";
+import ThemeProvider from "./context/ThemeContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ThemeProvider><BrowserRouter><App /></BrowserRouter></ThemeProvider>
   </StrictMode>,
 );

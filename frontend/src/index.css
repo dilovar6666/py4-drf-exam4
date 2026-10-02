@@ -27,3 +27,49 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .pharmacy-pin span { font-size: 20px; font-weight: 800; line-height: 1; transform: rotate(45deg); }
 .pharmacy-pin.is-all-day::after { content: ""; position: absolute; right: -3px; top: -3px; width: 10px; height: 10px; border: 2px solid white; border-radius: 999px; background: #2563eb; }
 .pharmacy-pin.is-selected { width: 48px; height: 48px; border-radius: 17px 17px 17px 5px; background: #115e59; box-shadow: 0 0 0 7px rgb(20 184 166 / .2), 0 16px 35px rgb(15 118 110 / .42); transform: rotate(-45deg) scale(1.04); }
+
+/* Theme switch: PharmaMap interpretation of the Uiverse day/night motion reference. */
+.theme-switch { width: 58px; height: 34px; padding: 3px; border: 1px solid #dbe7e5; border-radius: 999px; background: white; box-shadow: 0 6px 20px rgb(15 23 42 / .08); cursor: pointer; }
+.theme-switch__sky { position: relative; display: block; width: 100%; height: 100%; overflow: hidden; border-radius: inherit; background: linear-gradient(135deg, #dff8ff, #e7fbf5); transition: background .35s ease; }
+.theme-switch__sun, .theme-switch__moon { position: absolute; top: 7px; width: 14px; height: 14px; transition: opacity .25s ease, transform .35s ease; }
+.theme-switch__sun { left: 7px; color: #d97706; }
+.theme-switch__moon { right: 7px; color: #cbd5e1; opacity: .25; }
+.theme-switch__orb { position: absolute; left: 2px; top: 2px; display: grid; width: 24px; height: 24px; place-items: center; border-radius: 50%; background: white; color: #0f766e; box-shadow: 0 4px 10px rgb(15 118 110 / .2); transition: transform .38s cubic-bezier(.34,1.56,.64,1), background .3s ease, color .3s ease; }
+.theme-switch__orb svg { width: 13px; height: 13px; }
+.theme-switch.is-dark .theme-switch__sky { background: linear-gradient(135deg, #182126, #263741); }
+.theme-switch.is-dark .theme-switch__sun { opacity: .25; transform: rotate(-25deg); }
+.theme-switch.is-dark .theme-switch__moon { opacity: 1; transform: rotate(8deg); }
+.theme-switch.is-dark .theme-switch__orb { transform: translateX(24px); background: #0f171b; color: #8be4da; }
+
+/* General and admin toggles: compact bubble/check controls adapted to PharmaMap. */
+.toggle-control { display: inline-flex; align-items: center; gap: .75rem; cursor: pointer; }
+.toggle-control input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.toggle-control__track { position: relative; width: 48px; height: 27px; border: 1px solid #cbd5e1; border-radius: 999px; background: #e8efee; transition: .25s ease; }
+.toggle-control__thumb { position: absolute; left: 3px; top: 3px; display: grid; width: 19px; height: 19px; place-items: center; border-radius: 50%; background: white; color: transparent; box-shadow: 0 3px 8px rgb(15 23 42 / .16); transition: transform .28s cubic-bezier(.34,1.56,.64,1), color .2s ease; }
+.toggle-control__thumb svg { width: 11px; }
+.toggle-control input:checked + .toggle-control__track { border-color: #0d9488; background: #0d9488; box-shadow: 0 0 0 4px rgb(13 148 136 / .1); }
+.toggle-control input:checked + .toggle-control__track .toggle-control__thumb { color: #0f766e; transform: translateX(21px); }
+.toggle-control.is-admin .toggle-control__track { border: 2px solid #64748b; background: transparent; }
+.toggle-control.is-admin input:checked + .toggle-control__track { border-color: #2dd4bf; background: rgb(13 148 136 / .22); }
+.toggle-control__label { font-size: .875rem; font-weight: 700; }
+.toggle-control.is-disabled { cursor: not-allowed; opacity: .55; }
+
+html.dark { background: #0c1114; }
+html.dark body, html.dark #root { background: #0c1114; color: #dce8e6; }
+html.dark .bg-white, html.dark [class*="bg-white/"] { background-color: #12191d !important; }
+html.dark .bg-\[\#f7f9f8\], html.dark .bg-\[\#f8faf9\], html.dark .bg-slate-50, html.dark .bg-slate-100 { background-color: #0c1114 !important; }
+html.dark .bg-teal-50, html.dark [class*="bg-teal-50/"] { background-color: rgb(19 78 74 / .32) !important; }
+html.dark .bg-blue-50 { background-color: rgb(30 58 138 / .3) !important; }
+html.dark .bg-amber-50 { background-color: rgb(120 53 15 / .28) !important; }
+html.dark .bg-emerald-50 { background-color: rgb(6 78 59 / .3) !important; }
+html.dark .bg-red-50, html.dark .bg-rose-50 { background-color: rgb(127 29 29 / .28) !important; }
+html.dark .text-slate-950, html.dark .text-slate-900, html.dark .text-slate-800, html.dark .text-slate-700 { color: #e5efed !important; }
+html.dark .text-slate-600, html.dark .text-slate-500 { color: #a8bbb7 !important; }
+html.dark .text-slate-400 { color: #81928f !important; }
+html.dark .border-slate-100, html.dark .border-slate-200, html.dark [class*="border-slate-200/"] { border-color: #26353a !important; }
+html.dark input, html.dark textarea, html.dark select { border-color: #314249 !important; background-color: #12191d !important; color: #e5efed !important; }
+html.dark input::placeholder, html.dark textarea::placeholder { color: #70827e; }
+html.dark .leaflet-popup-content-wrapper, html.dark .leaflet-popup-tip { background: #12191d; color: #e5efed; }
+html.dark .shadow-xl, html.dark [class*="shadow-"] { --tw-shadow-color: rgb(0 0 0 / .34); }
+html.dark .theme-switch { border-color: #314249; background: #182126; }
+html.dark ::selection { background: #115e59; color: #ecfdf5; }
