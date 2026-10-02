@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Clock3, MapPin, MessageCircle, Phone } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import api, { apiErrorMessage, mediaUrl } from "../api/axios";
 import PharmacyMap from "../components/PharmacyMap";
 import ReviewCard from "../components/ReviewCard";
@@ -11,12 +11,12 @@ import Button from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
 import PageState from "../components/ui/PageState";
 import useAuth from "../context/useAuth";
+import useOpenPharmacyChat from "../hooks/useOpenPharmacyChat";
 
 export default function PharmacyPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { openPharmacyChat, chatState } = useOpenPharmacyChat();
   const [pharmacy, setPharmacy] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [status, setStatus] = useState("loading");
@@ -40,15 +40,6 @@ export default function PharmacyPage() {
     () => reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0,
     [reviews],
   );
-
-  function openChat() {
-    if (!user) {
-      navigate("/login", { state: { from: location.pathname } });
-      return;
-    }
-    sessionStorage.setItem("chat_pharmacy_id", String(id));
-    navigate(`/chats?pharmacy=${id}`);
-  }
 
   async function submitReview(event) {
     event.preventDefault();
@@ -89,9 +80,10 @@ export default function PharmacyPage() {
               <Info icon={Clock3}>{hours}</Info>
             </div>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Button type="button" onClick={openChat}><MessageCircle className="size-4" /> Написать</Button>
+              <Button type="button" onClick={() => openPharmacyChat(id)} disabled={chatState.loading}><MessageCircle className="size-4" /> {chatState.loading ? "Открываем..." : "Написать"}</Button>
               <Button asChild variant="outline"><Link to={`/?pharmacy=${pharmacy.id}`}>Показать на большой карте</Link></Button>
             </div>
+            {chatState.error && <p className="mt-3 text-sm font-semibold text-red-600">{chatState.error}</p>}
             {pharmacy.description && <p className="mt-7 max-w-2xl border-t border-slate-100 pt-6 leading-7 text-slate-600">{pharmacy.description}</p>}
           </div>
           <div className="min-h-72 bg-teal-50">

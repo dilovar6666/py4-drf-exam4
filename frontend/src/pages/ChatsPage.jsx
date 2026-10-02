@@ -1,6 +1,6 @@
 import { ArrowLeft, Building2, CheckCheck, MessageCircle, Send, ShieldOff, ShieldCheck, UserRound, Wifi } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import api, { apiErrorMessage } from "../api/axios";
 import PageHeader from "../components/PageHeader";
 import Avatar from "../components/ui/Avatar";
@@ -12,6 +12,8 @@ import useAuthenticatedSocket from "../hooks/useAuthenticatedSocket";
 
 export default function ChatsPage() {
   const { user } = useAuth();
+  const { chatId } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [chats, setChats] = useState([]);
   const [pharmacies, setPharmacies] = useState({});
@@ -29,7 +31,7 @@ export default function ChatsPage() {
         const [{ data: chatData }, { data: pharmacyData }] = await Promise.all([api.get("chats/"), api.get("pharmacies/")]);
         if (!active) return;
         let nextChats = chatData;
-        let requestedChat = Number(searchParams.get("chat"));
+        let requestedChat = Number(chatId || searchParams.get("chat"));
         const requestedPharmacy = Number(searchParams.get("pharmacy") || sessionStorage.getItem("chat_pharmacy_id"));
         if (!requestedChat && requestedPharmacy && user.role !== "pharmacist") {
           let chat = nextChats.find((item) => item.pharmacy === requestedPharmacy);
@@ -40,6 +42,7 @@ export default function ChatsPage() {
           }
           requestedChat = chat.id;
           sessionStorage.removeItem("chat_pharmacy_id");
+          navigate(`/messages/${chat.id}`, { replace: true });
         }
         if (!active) return;
         setChats(nextChats);
@@ -50,7 +53,7 @@ export default function ChatsPage() {
     }
     load();
     return () => { active = false; };
-  }, [searchParams, user.role]);
+  }, [chatId, navigate, searchParams, user.role]);
 
   const loadMessages = useCallback(async (chatId) => {
     if (!chatId) return;
@@ -72,7 +75,7 @@ export default function ChatsPage() {
     return () => window.clearTimeout(timer);
   }, [activeId, loadMessages, loadBlocks]);
 
-  const { send: sendSocket, status: socketStatus } = useAuthenticatedSocket(
+  const { status: socketStatus } = useAuthenticatedSocket(
     activeId ? `/ws/chats/${activeId}/` : null,
     (event) => {
       if (event.type === "message") {
@@ -95,13 +98,20 @@ export default function ChatsPage() {
   const myBlock = blocks.find((block) => block.blocker === user.id);
   const isBlocked = Boolean(activeChat?.is_blocked || blocks.length);
 
-  function send(event) {
+  async function send(event) {
     event.preventDefault();
     const value = text.trim();
     if (!value || !activeId || isBlocked) return;
     setSendState({ loading: true });
-    if (sendSocket({ text: value })) setText("");
-    else setSendState({ error: "Соединение восстанавливается. Попробуйте ещё раз." });
+    setText("");
+    try {
+      const { data } = await api.post("messages/", { chat: activeId, text: value });
+      setMessages((items) => items.some((item) => item.id === data.id) ? items : [...items, data]);
+      setSendState({});
+    } catch (error) {
+      setText(value);
+      setSendState({ error: apiErrorMessage(error, "Сообщение не отправлено.") });
+    }
   }
 
   async function toggleBlock() {

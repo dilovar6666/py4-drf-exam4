@@ -42,6 +42,7 @@ export default function App() {
     <Route path="/pharmacist-workspace" element={protectedPage(<PharmacistWorkspacePage />)} />
     <Route path="/reservations" element={protectedPage(<ReservationsPage />)} />
     <Route path="/chats" element={protectedPage(<ChatsPage />)} />
+    <Route path="/messages/:chatId" element={protectedPage(<ChatsPage />)} />
     <Route path="/notifications" element={protectedPage(<NotificationsPage />)} />
     <Route path="/admin-panel" element={<StaffRoute><AdminPanelPage /></StaffRoute>} />
     <Route path="*" element={<NotFoundPage />} />

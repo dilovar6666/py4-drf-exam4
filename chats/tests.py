@@ -40,6 +40,29 @@ class ChatPermissionTests(APITestCase):
         response = self.client.get(f"/api/chats/{self.other_chat.id}/")
         self.assertEqual(response.status_code, 404)
 
+    def test_get_or_create_chat_from_pharmacy_returns_same_chat(self):
+        self.client.force_authenticate(self.user)
+        first = self.client.post("/api/chats/", {"pharmacy": self.pharmacy.id})
+        second = self.client.post("/api/chats/", {"pharmacy": self.pharmacy.id})
+        self.assertEqual(first.status_code, 201)
+        self.assertEqual(second.status_code, 201)
+        self.assertEqual(first.data["id"], self.chat.id)
+        self.assertEqual(second.data["id"], self.chat.id)
+        self.assertEqual(Chat.objects.filter(user=self.user, pharmacy=self.pharmacy).count(), 1)
+
+    def test_rest_message_persists_for_offline_pharmacist_history(self):
+        self.client.force_authenticate(self.user)
+        sent = self.client.post(
+            "/api/messages/", {"chat": self.chat.id, "text": "offline test2"}
+        )
+        self.assertEqual(sent.status_code, 201)
+        self.assertTrue(Message.objects.filter(pk=sent.data["id"], text="offline test2").exists())
+
+        self.client.force_authenticate(self.pharmacist)
+        history = self.client.get(f"/api/chats/{self.chat.id}/messages/")
+        self.assertEqual(history.status_code, 200)
+        self.assertIn("offline test2", [item["text"] for item in history.data])
+
     def test_user_cannot_send_to_another_chat(self):
         self.client.force_authenticate(self.user)
         response = self.client.post(
