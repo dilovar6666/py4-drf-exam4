@@ -7,7 +7,14 @@ Existing mobile reference screens used for this pass:
 - Mobile Map Home / 390x844: `f1efef13a9a8484ba5feec2dc010968e`
 - Mobile Map + Pharmacy Sheet / 390x844: `f4f11f7eb96d406e945eb45dd9f3942c`
 
-Selected direction: full map canvas, floating search and filters, touch-safe controls, collapsed/expanded pharmacy sheet, and five-item safe-area bottom navigation. The React implementation applies the same app-shell language to Messages, Admin drawer, dialogs, AI, and content pages. On 2026-10-02 a fresh Stitch generation and an edit pass were both attempted against the two mobile reference screens; the connector returned a network failure for both calls, so no unverified new IDs are claimed and the existing source IDs remain the canonical references.
+Latest mobile screens supplied from Stitch UI and used for this implementation pass:
+
+- Map Home: `99696f4ce5e04796a1ece705ce7b63e3`, `a98d12d9c7f6459aa73d4815e37e4c36`
+- Interactive Bottom Sheet: `110297b6fb8c4dd3a851ade1ac56eb79`, `024cf9d4770544cda4c4c6a64001f40c`
+- Light/dark mobile directions: `4a63d9a9b92c469da1727feffddcd3a8`, `54ff227efcb544f89894380cb4b864fc`
+- Additional mobile map reference: `e729021c0a494cd7a857f9c3affc121e`
+
+Selected direction: full map canvas, floating search and filters, touch-safe controls, collapsed/expanded pharmacy sheet, and five-item safe-area bottom navigation. The React implementation applies the same app-shell language to Messages, Admin drawer, dialogs, AI, and content pages. The latest Stitch UI screens above are now the canonical mobile references for the React pass.
 
 Stitch project: `projects/2059521797541322910`
 

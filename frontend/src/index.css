@@ -102,6 +102,18 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .map-controls { bottom: calc(10.5rem + env(safe-area-inset-bottom)) !important; }
 }
 
+/* Stitch mobile references: floating map search + tactile pharmacy sheet. */
+@media (max-width: 767px) {
+  .home-map-screen [class*="inset-x-3"][class*="top-3"] { left: .75rem; right: .75rem; top: .75rem; }
+  .home-map-screen [class*="inset-x-3"][class*="top-3"] > div { border: 1px solid color-mix(in srgb, var(--border) 82%, transparent); border-radius: 18px; }
+  .home-map-screen > div > section { left: .5rem; right: .5rem; bottom: calc(.5rem + env(safe-area-inset-bottom)); border-color: var(--border); background: color-mix(in srgb, var(--surface) 97%, transparent); }
+  .home-map-screen > div > section > div:first-child { border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent); }
+  .home-map-screen > div > section > div:first-child > button:first-child { width: 3rem; height: .35rem; margin-top: .1rem; }
+  .home-map-screen > div > section > div:last-child { overscroll-behavior: contain; scrollbar-width: none; }
+  .home-map-screen > div > section > div:last-child::-webkit-scrollbar { display: none; }
+}
+html.dark .home-map-screen > div > section { background: color-mix(in srgb, var(--surface) 96%, transparent); }
+
 /* Theme switch: PharmaMap interpretation of the Uiverse day/night motion reference. */
 .theme-switch { width: 58px; height: 34px; padding: 3px; border: 1px solid #dbe7e5; border-radius: 999px; background: white; box-shadow: 0 6px 20px rgb(15 23 42 / .08); cursor: pointer; }
 .theme-switch__sky { position: relative; display: block; width: 100%; height: 100%; overflow: hidden; border-radius: inherit; background: linear-gradient(135deg, #dff8ff, #e7fbf5); transition: background .35s ease; }
