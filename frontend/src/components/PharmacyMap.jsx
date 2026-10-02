@@ -13,7 +13,14 @@ function markerIcon(selected, allDay) {
   return divIcon({ className: "", iconSize: selected ? [52, 58] : [40, 46], iconAnchor: selected ? [26, 54] : [20, 43], popupAnchor: [0, -45], html: `<div class="pharmacy-pin ${selected ? "is-selected" : ""} ${allDay ? "is-all-day" : ""}"><span>+</span>${allDay ? '<i aria-hidden="true"></i>' : ""}</div>` });
 }
 
-function MapSync({ selected, pharmacies, route, layer, onLayer, satelliteAvailable }) {
+const userLocationIcon = divIcon({
+  className: "",
+  iconSize: [42, 42],
+  iconAnchor: [21, 21],
+  html: '<div class="user-location-pin" title="Вы здесь"><span></span></div>',
+});
+
+function MapSync({ selected, pharmacies, route, layer, onLayer, satelliteAvailable, onLocation, onLocationError }) {
   const map = useMap();
   useEffect(() => {
     if (route?.positions?.length) {
@@ -22,13 +29,16 @@ function MapSync({ selected, pharmacies, route, layer, onLayer, satelliteAvailab
       map.flyTo([Number(selected.latitude), Number(selected.longitude)], Math.max(map.getZoom(), 15), { duration: .65 });
     }
   }, [map, selected, route]);
-  return <MapControls map={map} pharmacies={pharmacies} layer={layer} onLayer={onLayer} satelliteAvailable={satelliteAvailable} />;
+  return <MapControls map={map} pharmacies={pharmacies} layer={layer} onLayer={onLayer} satelliteAvailable={satelliteAvailable} onLocation={onLocation} onLocationError={onLocationError} />;
 }
 
-function MapControls({ map, pharmacies, layer, onLayer, satelliteAvailable }) {
+function MapControls({ map, pharmacies, layer, onLayer, satelliteAvailable, onLocation, onLocationError }) {
   function locate() {
-    navigator.geolocation?.getCurrentPosition(
-      ({ coords }) => map.flyTo([coords.latitude, coords.longitude], 15, { duration: .7 }),
+    if (!navigator.geolocation) { onLocationError("Геолокация не поддерживается браузером."); return; }
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => { const point = [coords.latitude, coords.longitude]; onLocation(point); map.flyTo(point, 15, { duration: .7 }); },
+      () => onLocationError("Не удалось получить местоположение. Разрешите геолокацию в браузере."),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
     );
   }
   function fitAll() {
@@ -57,6 +67,7 @@ export default function PharmacyMap({ pharmacies, selectedPharmacyId, onSelect, 
     return stored === "satellite" && mapTilerKey ? "satellite" : "map";
   });
   const [layerMessage, setLayerMessage] = useState("");
+  const [userPosition, setUserPosition] = useState(null);
   const valid = useMemo(() => pharmacies.filter((item) => Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))), [pharmacies]);
   const selected = valid.find((item) => item.id === selectedPharmacyId);
   function selectLayer(next) {
@@ -80,7 +91,8 @@ export default function PharmacyMap({ pharmacies, selectedPharmacyId, onSelect, 
   return <div className={cn("relative overflow-hidden bg-slate-100", variant === "card" && "rounded-[1.5rem] border border-slate-200 shadow-[0_20px_60px_rgba(15,118,110,.10)]", className)}>
     <MapContainer center={center} zoom={single ? 15 : 13} scrollWheelZoom zoomControl={false} className="z-0 size-full">
       {satellite ? <TileLayer key="satellite" attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' url={`https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=${mapTilerKey}`} eventHandlers={{ tileerror: handleSatelliteError }} /> : <TileLayer key="map" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />}
-      <MapSync selected={selected} pharmacies={valid} route={route} layer={layer} onLayer={selectLayer} satelliteAvailable={Boolean(mapTilerKey)} />
+      <MapSync selected={selected} pharmacies={valid} route={route} layer={layer} onLayer={selectLayer} satelliteAvailable={Boolean(mapTilerKey)} onLocation={setUserPosition} onLocationError={setLayerMessage} />
+      {userPosition && <Marker position={userPosition} icon={userLocationIcon} zIndexOffset={2000}><Popup><strong>Вы здесь</strong></Popup></Marker>}
       {route?.positions?.length > 1 && <><Polyline positions={route.positions} pathOptions={{ color: "#0f766e", weight: 6, opacity: .9 }} /><CircleMarker center={route.positions[0]} radius={7} pathOptions={{ color: "white", weight: 3, fillColor: "#2563eb", fillOpacity: 1 }} /></>}
       {valid.map((pharmacy) => {
         const offer = offers[pharmacy.id];
