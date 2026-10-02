@@ -43,6 +43,10 @@ class PharmacyApplicationTests(APITestCase):
         self.assertEqual(Pharmacy.objects.filter(name=self.payload["name"]).count(), 1)
         application = PharmacyApplication.objects.get(pk=application_id)
         self.assertTrue(PharmacyWorker.objects.filter(user=self.user, pharmacy=application.pharmacy).exists())
+        self.assertEqual(
+            PharmacyWorker.objects.get(user=self.user, pharmacy=application.pharmacy).role,
+            PharmacyWorker.Role.OWNER,
+        )
         self.user.refresh_from_db()
         self.assertEqual(self.user.role, "pharmacist")
 
@@ -53,3 +57,50 @@ class PharmacyApplicationTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["status"], "rejected")
         self.assertFalse(Pharmacy.objects.filter(name=self.payload["name"]).exists())
+
+
+class PharmacyEmployeeTests(APITestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.owner = User.objects.create_user(username="owner", password="pass12345", role="pharmacist")
+        self.pharmacist = User.objects.create_user(username="worker", password="pass12345", role="pharmacist")
+        self.candidate = User.objects.create_user(
+            username="candidate", email="candidate@example.com", phone="+992900001111", password="pass12345"
+        )
+        self.admin = User.objects.create_superuser(username="employee-admin", password="pass12345")
+        self.pharmacy = Pharmacy.objects.create(
+            name="Owner Pharmacy", address="Dushanbe", latitude=38.57, longitude=68.78
+        )
+        self.other_pharmacy = Pharmacy.objects.create(
+            name="Other Pharmacy", address="Dushanbe", latitude=38.58, longitude=68.79
+        )
+        PharmacyWorker.objects.create(user=self.owner, pharmacy=self.pharmacy, role=PharmacyWorker.Role.OWNER)
+        PharmacyWorker.objects.create(user=self.pharmacist, pharmacy=self.pharmacy)
+
+    def endpoint(self, pharmacy=None):
+        return f"/api/pharmacies/{(pharmacy or self.pharmacy).id}/employees/"
+
+    def test_owner_can_add_and_remove_existing_employee(self):
+        self.client.force_authenticate(self.owner)
+        created = self.client.post(self.endpoint(), {"identifier": "candidate@example.com"})
+        self.assertEqual(created.status_code, 201)
+        self.assertEqual(created.data["role"], PharmacyWorker.Role.PHARMACIST)
+        removed = self.client.delete(f"{self.endpoint()}{created.data['id']}/")
+        self.assertEqual(removed.status_code, 204)
+        self.assertFalse(PharmacyWorker.objects.filter(user=self.candidate).exists())
+
+    def test_regular_pharmacist_cannot_manage_employees(self):
+        self.client.force_authenticate(self.pharmacist)
+        response = self.client.post(self.endpoint(), {"identifier": self.candidate.username})
+        self.assertEqual(response.status_code, 403)
+
+    def test_owner_cannot_manage_another_pharmacy(self):
+        self.client.force_authenticate(self.owner)
+        response = self.client.post(self.endpoint(self.other_pharmacy), {"identifier": self.candidate.username})
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_can_manage_all_pharmacies(self):
+        self.client.force_authenticate(self.admin)
+        created = self.client.post(self.endpoint(self.other_pharmacy), {"identifier": self.candidate.phone})
+        self.assertEqual(created.status_code, 201)
+        self.assertEqual(created.data["pharmacy"], self.other_pharmacy.id)

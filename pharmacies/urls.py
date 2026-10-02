@@ -6,6 +6,8 @@ from .views import (
     PharmacyApplicationListCreateView,
     PharmacyApplicationRejectView,
     PharmacyDetailView,
+    PharmacyEmployeeDetailView,
+    PharmacyEmployeeListCreateView,
     PharmacyListCreateView,
     PharmacyWorkerDetailView,
     PharmacyWorkerListCreateView,
@@ -15,6 +17,8 @@ from .views import (
 urlpatterns = [
     path("pharmacies/", PharmacyListCreateView.as_view()),
     path("pharmacies/<int:pk>/", PharmacyDetailView.as_view()),
+    path("pharmacies/<int:pharmacy_id>/employees/", PharmacyEmployeeListCreateView.as_view()),
+    path("pharmacies/<int:pharmacy_id>/employees/<int:pk>/", PharmacyEmployeeDetailView.as_view()),
     path("pharmacy-workers/", PharmacyWorkerListCreateView.as_view()),
     path("pharmacy-workers/<int:pk>/", PharmacyWorkerDetailView.as_view()),
     path("pharmacy-applications/", PharmacyApplicationListCreateView.as_view()),

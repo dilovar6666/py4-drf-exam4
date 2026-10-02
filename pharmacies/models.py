@@ -20,8 +20,18 @@ class Pharmacy(models.Model):
 
 
 class PharmacyWorker(models.Model):
+    class Role(models.TextChoices):
+        OWNER = "owner", "Owner"
+        PHARMACIST = "pharmacist", "Pharmacist"
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.PHARMACIST)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("user", "pharmacy"), name="unique_pharmacy_worker")
+        ]
 
     def __str__(self):
         return f"{self.user} - {self.pharmacy}"

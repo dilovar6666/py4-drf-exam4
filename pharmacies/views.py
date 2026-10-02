@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -55,6 +56,76 @@ class PharmacyWorkerDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_permissions(self):
         return [IsAdminUser()]
+
+
+def is_pharmacy_owner(user, pharmacy_id):
+    return PharmacyWorker.objects.filter(
+        user=user,
+        pharmacy_id=pharmacy_id,
+        role=PharmacyWorker.Role.OWNER,
+    ).exists()
+
+
+class PharmacyEmployeeListCreateView(generics.ListCreateAPIView):
+    serializer_class = PharmacyWorkerSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        pharmacy_id = self.kwargs["pharmacy_id"]
+        if self.request.user.is_staff or PharmacyWorker.objects.filter(
+            user=self.request.user, pharmacy_id=pharmacy_id
+        ).exists():
+            return PharmacyWorker.objects.filter(pharmacy_id=pharmacy_id).select_related("user")
+        raise PermissionDenied("Нет доступа к сотрудникам этой аптеки.")
+
+    def create(self, request, *args, **kwargs):
+        pharmacy_id = self.kwargs["pharmacy_id"]
+        if not request.user.is_staff and not is_pharmacy_owner(request.user, pharmacy_id):
+            raise PermissionDenied("Только владелец аптеки может добавлять сотрудников.")
+        identifier = str(request.data.get("identifier", "")).strip()
+        if not identifier:
+            raise ValidationError({"identifier": "Укажите username, email или телефон."})
+        User = get_user_model()
+        user = User.objects.filter(username__iexact=identifier).first()
+        if not user:
+            user = User.objects.filter(email__iexact=identifier).first()
+        if not user:
+            user = User.objects.filter(phone=identifier).first()
+        if not user:
+            raise ValidationError({"identifier": "Пользователь не найден."})
+        other_worker = PharmacyWorker.objects.filter(user=user).exclude(pharmacy_id=pharmacy_id).first()
+        if other_worker:
+            raise ValidationError({"identifier": "Пользователь уже работает в другой аптеке."})
+        worker, created = PharmacyWorker.objects.get_or_create(
+            user=user,
+            pharmacy_id=pharmacy_id,
+            defaults={"role": PharmacyWorker.Role.PHARMACIST},
+        )
+        if user.role != "pharmacist":
+            user.role = "pharmacist"
+            user.save(update_fields=("role",))
+        serializer = self.get_serializer(worker)
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+
+class PharmacyEmployeeDetailView(generics.DestroyAPIView):
+    serializer_class = PharmacyWorkerSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return PharmacyWorker.objects.filter(pharmacy_id=self.kwargs["pharmacy_id"])
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        if not user.is_staff and not is_pharmacy_owner(user, instance.pharmacy_id):
+            raise PermissionDenied("Только владелец аптеки может удалять сотрудников.")
+        if instance.role == PharmacyWorker.Role.OWNER and not user.is_staff:
+            raise ValidationError("Владелец не может удалить владельца аптеки.")
+        employee = instance.user
+        instance.delete()
+        if not employee.pharmacyworker_set.exists() and employee.role == "pharmacist":
+            employee.role = "user"
+            employee.save(update_fields=("role",))
 
 
 class PharmacyApplicationListCreateView(generics.ListCreateAPIView):
@@ -113,7 +184,11 @@ class PharmacyApplicationApproveView(APIView):
                 is_24_hours=application.is_24_hours,
                 description=application.description,
             )
-            PharmacyWorker.objects.get_or_create(user=application.applicant, pharmacy=pharmacy)
+            PharmacyWorker.objects.get_or_create(
+                user=application.applicant,
+                pharmacy=pharmacy,
+                defaults={"role": PharmacyWorker.Role.OWNER},
+            )
             if application.applicant.role != "pharmacist":
                 application.applicant.role = "pharmacist"
                 application.applicant.save(update_fields=("role",))
