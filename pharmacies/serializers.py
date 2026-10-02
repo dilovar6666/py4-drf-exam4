@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Avg
 
-from .models import Pharmacy, PharmacyWorker
+from .models import Pharmacy, PharmacyApplication, PharmacyWorker
 
 
 class PharmacySerializer(serializers.ModelSerializer):
@@ -36,3 +36,12 @@ class PharmacyWorkerSerializer(serializers.ModelSerializer):
     class Meta:
         model = PharmacyWorker
         fields = "__all__"
+
+
+class PharmacyApplicationSerializer(serializers.ModelSerializer):
+    applicant_username = serializers.CharField(source="applicant.username", read_only=True)
+
+    class Meta:
+        model = PharmacyApplication
+        fields = "__all__"
+        read_only_fields = ("applicant", "status", "pharmacy", "created_at")

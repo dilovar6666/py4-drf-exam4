@@ -8,7 +8,7 @@ import Avatar from "./ui/Avatar";
 import Button from "./ui/Button";
 
 const publicLinks = [{ to: "/", label: "Поиск" }, { to: "/leaderboard", label: "Рейтинги" }];
-const privateLinks = [{ to: "/reservations", label: "Брони" }, { to: "/chats", label: "Сообщения" }];
+const privateLinks = [{ to: "/reservations", label: "Брони" }, { to: "/chats", label: "Сообщения" }, { to: "/pharmacy-applications", label: "Добавить аптеку" }];
 
 export default function Navbar() {
   const { user, loading, logout } = useAuth();

@@ -1,4 +1,4 @@
-import { Award, Building2, Clock3, PackageCheck, Star, TicketCheck, UsersRound } from "lucide-react";
+import { Award, Building2, Clock3, PackageCheck, Star, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
@@ -18,7 +18,6 @@ export default function LeaderboardPage() {
     return [
       ["Лучший рейтинг", Star, [...pharmacyStats].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5), (item) => `${item.rating || "—"} · ${item.review_count} отзывов`],
       ["Больше всего отзывов", UsersRound, [...pharmacyStats].sort((a, b) => b.review_count - a.review_count).slice(0, 5), (item) => `${item.review_count} отзывов`],
-      ["Завершённые брони", TicketCheck, [...pharmacyStats].sort((a, b) => b.completed_reservations - a.completed_reservations).slice(0, 5), (item) => `${item.completed_reservations} завершено`],
       ["Лучшее наличие", PackageCheck, [...pharmacyStats].sort((a, b) => b.available_medicines - a.available_medicines).slice(0, 5), (item) => `${item.available_medicines} позиций`],
       ["Аптеки 24/7", Clock3, pharmacyStats.filter((item) => item.is_24_hours).slice(0, 5), () => "Круглосуточно"],
     ];
