@@ -19,6 +19,7 @@ The system keyboard was not emulated; viewport resize/fixed composer behavior wa
 - Owner workspace loaded the assigned pharmacy and showed reservations, inventory, chats, employees, and notifications links.
 - Owner employee action was visible. Existing `user2` was added through the UI, appeared in the employee list, then was removed through the UI; the list updated both times.
 - Regular `pharmacist1` was checked separately: the employee management action was absent and the workspace showed “Только просмотр”.
+- Cross-pharmacy employee management was checked with the temporary owner API token and returned `403`; the owner could not add to pharmacy 4.
 - Inventory UI created a disposable PharmacyMedicine for an existing medicine, rejected the duplicate submission, edited price/quantity, and deleted the item. Final API verification confirmed no test inventory remained.
 - Owner viewport overflow was `0`; no unexplained console/network failures were observed in the Edge run.
 - Cleanup verified: temporary owner count `0`, `user2` worker count unchanged at `0`, test inventory count `0`.
