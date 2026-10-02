@@ -2,7 +2,7 @@
 
 ## Authenticated QA (Edge CDP, 2026-10-02)
 
-The authenticated pass used the real Microsoft Edge executable listed below. Login was verified against the running API for `user1/demo12345`, `pharmacist1/demo12345`, and `admin/admin`. The seeded database has an owner worker (`apteca22`), but no valid password for that existing account was available; no password was changed or invented, so owner-only flows remain explicitly unverified.
+The authenticated pass used the real Microsoft Edge executable listed below. Login was verified against the running API for `user1/demo12345`, `pharmacist1/demo12345`, `admin/admin`, and a disposable local owner `qa_owner_20261002` with a temporary QA password. The temporary owner was attached to demo pharmacy 3 only for this run and removed afterward.
 
 | Role | Viewports | Result |
 | --- | --- | --- |
@@ -12,7 +12,16 @@ The authenticated pass used the real Microsoft Edge executable listed below. Log
 
 Additional real interactions: authenticated RU -> TJ language change without reload (localStorage persisted `tj`), authenticated theme switch to dark, and Edge screenshots at 390x844/430x932. A confirmed mobile chat bug was fixed: the block/unblock header action now shows only its icon on mobile (desktop keeps the text label), preventing clipping at 390px.
 
-The system keyboard was not emulated; viewport resize/fixed composer behavior was checked instead. Owner-only employee management, two-profile presence timeout, reservation creation/cancellation, real AI request, avatar upload, and destructive admin CRUD are not claimed as completed because owner credentials or disposable-data interaction were unavailable/safely avoided.
+The system keyboard was not emulated; viewport resize/fixed composer behavior was checked instead. Two-profile presence timeout, reservation creation/cancellation, real AI request, avatar upload, and destructive admin CRUD remain outside this owner-only pass.
+
+### Owner-flow results (390x844)
+
+- Owner workspace loaded the assigned pharmacy and showed reservations, inventory, chats, employees, and notifications links.
+- Owner employee action was visible. Existing `user2` was added through the UI, appeared in the employee list, then was removed through the UI; the list updated both times.
+- Regular `pharmacist1` was checked separately: the employee management action was absent and the workspace showed “Только просмотр”.
+- Inventory UI created a disposable PharmacyMedicine for an existing medicine, rejected the duplicate submission, edited price/quantity, and deleted the item. Final API verification confirmed no test inventory remained.
+- Owner viewport overflow was `0`; no unexplained console/network failures were observed in the Edge run.
+- Cleanup verified: temporary owner count `0`, `user2` worker count unchanged at `0`, test inventory count `0`.
 
 Дата: 2026-10-02
 
