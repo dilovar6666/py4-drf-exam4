@@ -92,7 +92,8 @@ Backend `.env`:
 
 ```env
 SECRET_KEY=replace-with-a-long-local-key
-DJANGO_DEBUG=True
+DEBUG=False
+ALLOWED_HOSTS=127.0.0.1,localhost
 DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.8-flash
