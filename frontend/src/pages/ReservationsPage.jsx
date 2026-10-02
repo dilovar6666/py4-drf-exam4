@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import api, { apiErrorMessage } from "../api/axios";
 import PageHeader from "../components/PageHeader";
 import ReservationCard from "../components/ReservationCard";
@@ -6,49 +7,12 @@ import { Card } from "../components/ui/Card";
 import PageState from "../components/ui/PageState";
 import useAuth from "../context/useAuth";
 
-const tabs = [["all", "Все"], ["active", "Активные"], ["ready", "Готовы"], ["history", "История"]];
-
 export default function ReservationsPage() {
-  const { user } = useAuth();
-  const [reservations, setReservations] = useState([]);
-  const [status, setStatus] = useState("loading");
-  const [tab, setTab] = useState("all");
-  const [action, setAction] = useState({});
-  const load = useCallback(async (showLoading = false) => {
-      if (showLoading) setStatus("loading");
-      try {
-        const [{ data: bookings }, { data: inventory }, { data: medicines }, { data: pharmacies }] = await Promise.all([api.get("reservations/"), api.get("pharmacy-medicines/"), api.get("medicines/"), api.get("pharmacies/")]);
-        const inventoryById = Object.fromEntries(inventory.map((item) => [item.id, item]));
-        const medicinesById = Object.fromEntries(medicines.map((item) => [item.id, item]));
-        const pharmaciesById = Object.fromEntries(pharmacies.map((item) => [item.id, item]));
-        setReservations(bookings.map((booking) => {
-          const stock = inventoryById[booking.pharmacy_medicine];
-          return { ...booking, stock, medicine: medicinesById[stock?.medicine], pharmacy: pharmaciesById[stock?.pharmacy] };
-        }));
-        setStatus("ready");
-      } catch { setStatus("error"); }
-  }, []);
-  useEffect(() => {
-    const timer = window.setTimeout(() => load(true), 0);
-    const realtime = (event) => {
-      if (/брон/i.test(`${event.detail?.title} ${event.detail?.message}`)) load(false);
-    };
-    window.addEventListener("notification:received", realtime);
-    return () => { window.clearTimeout(timer); window.removeEventListener("notification:received", realtime); };
-  }, [load]);
+  const { t } = useTranslation(); const { user } = useAuth(); const [reservations, setReservations] = useState([]); const [status, setStatus] = useState("loading"); const [tab, setTab] = useState("all"); const [action, setAction] = useState({});
+  const load = useCallback(async (showLoading = false) => { if (showLoading) setStatus("loading"); try { const [{ data: bookings }, { data: inventory }, { data: medicines }, { data: pharmacies }] = await Promise.all([api.get("reservations/"), api.get("pharmacy-medicines/"), api.get("medicines/"), api.get("pharmacies/")]); const inventoryById = Object.fromEntries(inventory.map((item) => [item.id, item])); const medicinesById = Object.fromEntries(medicines.map((item) => [item.id, item])); const pharmaciesById = Object.fromEntries(pharmacies.map((item) => [item.id, item])); setReservations(bookings.map((booking) => { const stock = inventoryById[booking.pharmacy_medicine]; return { ...booking, stock, medicine: medicinesById[stock?.medicine], pharmacy: pharmaciesById[stock?.pharmacy] }; })); setStatus("ready"); } catch { setStatus("error"); } }, []);
+  useEffect(() => { const timer = window.setTimeout(() => load(true), 0); const realtime = () => load(false); window.addEventListener("notification:received", realtime); return () => { window.clearTimeout(timer); window.removeEventListener("notification:received", realtime); }; }, [load]);
   const filtered = useMemo(() => reservations.filter((booking) => tab === "all" || (tab === "active" && ["pending", "confirmed"].includes(booking.status)) || (tab === "ready" && booking.status === "ready") || (tab === "history" && ["completed", "cancelled"].includes(booking.status))), [reservations, tab]);
-  async function updateStatus(booking, nextStatus) {
-    setAction({ id: booking.id });
-    try {
-      const { data } = await api.patch(`reservations/${booking.id}/`, { status: nextStatus });
-      setReservations((items) => items.map((item) => item.id === booking.id ? { ...item, ...data } : item));
-      setAction({});
-    } catch (error) {
-      setAction({ error: apiErrorMessage(error, "Не удалось изменить статус брони.") });
-    }
-  }
-  if (status === "loading") return <PageState type="loading" />;
-  if (status === "error") return <PageState type="error" message="Не удалось загрузить бронирования" />;
-  const role = user.is_staff ? "staff" : user.role;
-  return <div className="page-shell py-10 pb-28 sm:py-14"><PageHeader eyebrow={role === "user" ? "Личный кабинет" : "Рабочее место аптеки"} title={role === "user" ? "Мои брони" : "Брони аптеки"} description="Статусы меняются по безопасному workflow, а события доставляются в реальном времени." />{action.error && <p className="mb-4 rounded-2xl bg-red-50 p-4 text-sm text-red-700">{action.error}</p>}<div className="mb-6 flex gap-2 overflow-x-auto pb-1">{tabs.map(([value, label]) => <button key={value} onClick={() => setTab(value)} className={`focus-ring shrink-0 rounded-full px-4 py-2 text-sm font-bold transition ${tab === value ? "bg-teal-700 text-white" : "border border-slate-200 bg-white text-slate-600"}`}>{label}</button>)}</div><div className="space-y-4">{filtered.length ? filtered.map((booking) => <ReservationCard key={booking.id} booking={booking} role={role} onStatus={updateStatus} busy={action.id === booking.id} />) : <Card><PageState type="empty" message="В этом разделе пока нет бронирований" /></Card>}</div></div>;
+  async function updateStatus(booking, nextStatus) { setAction({ id: booking.id }); try { const { data } = await api.patch(`reservations/${booking.id}/`, { status: nextStatus }); setReservations((items) => items.map((item) => item.id === booking.id ? { ...item, ...data } : item)); setAction({}); } catch (error) { setAction({ error: apiErrorMessage(error, t("errors.save")) }); } }
+  if (status === "loading") return <PageState type="loading" />; if (status === "error") return <PageState type="error" message={t("errors.load")} />; const role = user.is_staff ? "staff" : user.role; const tabs = [["all", t("reservations.all", { defaultValue: "Все" })], ["active", t("reservations.active", { defaultValue: "Активные" })], ["ready", t("reservation.status.ready")], ["history", t("reservations.history", { defaultValue: "История" })]];
+  return <div className="page-shell py-10 pb-28 sm:py-14"><PageHeader eyebrow={role === "user" ? t("profile.title") : t("nav.workspace")} title={role === "user" ? t("profile.myReservations") : t("reservations.pharmacyTitle", { defaultValue: "Брони аптеки" })} description={t("reservations.description", { defaultValue: "Следите за статусом бронирований и обновлениями аптеки." })} />{action.error && <p className="mb-4 rounded-2xl bg-red-50 p-4 text-sm text-red-700">{action.error}</p>}<div className="mb-6 flex gap-2 overflow-x-auto pb-1">{tabs.map(([value, label]) => <button key={value} onClick={() => setTab(value)} className={`focus-ring shrink-0 rounded-full px-4 py-2 text-sm font-bold transition ${tab === value ? "bg-teal-700 text-white" : "border border-slate-200 bg-white text-slate-600"}`}>{label}</button>)}</div><div className="space-y-4">{filtered.length ? filtered.map((booking) => <ReservationCard key={booking.id} booking={booking} role={role} onStatus={updateStatus} busy={action.id === booking.id} />) : <Card><PageState type="empty" message={t("reservations.empty", { defaultValue: "В этом разделе пока нет бронирований" })} /></Card>}</div></div>;
 }
