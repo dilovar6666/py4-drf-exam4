@@ -9,8 +9,12 @@ const saved = localStorage.getItem(STORAGE_KEY);
 
 i18n.use(initReactI18next).init({
   resources: { ru: { translation: ru }, tj: { translation: tj }, en: { translation: en } },
+  ns: ["translation"],
+  defaultNS: "translation",
   lng: ["ru", "tj", "en"].includes(saved) ? saved : "ru",
   fallbackLng: "ru",
+  returnNull: false,
+  returnEmptyString: false,
   interpolation: { escapeValue: false },
 });
 
