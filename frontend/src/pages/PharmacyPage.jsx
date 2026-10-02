@@ -102,7 +102,7 @@ export default function PharmacyPage() {
               {pharmacy.phone && <Info icon={Phone}><a href={`tel:${pharmacy.phone}`} className="hover:text-teal-700">{pharmacy.phone}</a></Info>}
               <Info icon={Clock3}>{hours}</Info>
             </div>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mobile-quick-actions mt-7 flex flex-wrap gap-3">
               <Button type="button" onClick={() => openPharmacyChat(id)} disabled={chatState.loading}><MessageCircle className="size-4" /> {chatState.loading ? "Открываем..." : "Написать"}</Button>
               <Button asChild variant="outline"><Link to={`/?pharmacy=${pharmacy.id}`}>Показать на большой карте</Link></Button>
             </div>
