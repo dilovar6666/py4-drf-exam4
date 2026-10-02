@@ -4,7 +4,7 @@ PharmaMap — учебный сервис поиска лекарств и ап�
 
 ## Stack
 
-- Backend: Django, Django REST Framework, SimpleJWT, SQLite, Django Channels
+- Backend: Django, Django REST Framework, SimpleJWT, PostgreSQL, Django Channels
 - Frontend: React, Vite, React Router, Axios, Tailwind CSS, Radix/shadcn-style UI, Lucide, Framer Motion
 - Maps: React Leaflet, Leaflet, OpenStreetMap Standard, optional MapTiler Satellite, OSRM routing
 - AI: Gemini API через защищённый Django endpoint
@@ -30,6 +30,8 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
+ # Create the local PostgreSQL database once.
+ & "C:\Program Files\PostgreSQL\16\bin\createdb.exe" -U postgres pharmamap
 python manage.py migrate
 python manage.py seed_demo
 python manage.py runserver
@@ -64,8 +66,21 @@ SECRET_KEY=replace-with-a-long-local-key
 DJANGO_DEBUG=True
 DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
 GEMINI_API_KEY=
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.8-flash
+DB_NAME=pharmamap
+DB_USER=postgres
+DB_PASSWORD=
+DB_HOST=localhost
+DB_PORT=5432
 ```
+
+The application uses PostgreSQL when `DB_NAME` is set. Create it once with:
+
+```sql
+CREATE DATABASE pharmamap;
+```
+
+The former SQLite database is preserved locally as `db.sqlite3.backup` before migration. It is intentionally ignored by Git. For a manual SQLite-to-PostgreSQL migration, export from the SQLite configuration with `python -X utf8 manage.py dumpdata --natural-foreign --natural-primary --exclude contenttypes --exclude auth.permission --exclude sessions --exclude admin.logentry -o .postgres_data.json`, switch the DB environment variables, run `python manage.py migrate`, then load it with `python -X utf8 manage.py loaddata .postgres_data.json`.
 
 Frontend `frontend/.env`:
 
