@@ -1,11 +1,18 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
+from django.utils import timezone
+from channels.db import database_sync_to_async
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import AccessToken
 from channels.testing import WebsocketCommunicator
 
 from config.asgi import application
 from pharmacies.models import Pharmacy, PharmacyWorker
+from notifications.models import Notification
+from accounts.models import UserPresence
+from accounts.presence import presence_payload
 
 from .models import Chat, ChatBlock, Message
 
@@ -93,6 +100,22 @@ class ChatPermissionTests(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data["sender"], self.pharmacist.id)
 
+    def test_message_creates_notification_for_recipient_not_sender(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.post(
+            "/api/messages/", {"chat": self.chat.id, "text": "Нужна помощь"}
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(Notification.objects.filter(user=self.pharmacist, title="Новое сообщение").exists())
+        self.assertFalse(Notification.objects.filter(user=self.user, title="Новое сообщение").exists())
+
+    def test_blocked_user_cannot_unblock_blockers_record(self):
+        block = ChatBlock.objects.create(chat=self.chat, blocker=self.user, blocked=self.pharmacist)
+        self.client.force_authenticate(self.pharmacist)
+        response = self.client.delete(f"/api/chat-blocks/{block.id}/")
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(ChatBlock.objects.filter(pk=block.id).exists())
+
     def test_blocked_chat_rejects_new_message(self):
         ChatBlock.objects.create(chat=self.chat, blocker=self.user, blocked=self.pharmacist)
         self.client.force_authenticate(self.pharmacist)
@@ -100,6 +123,11 @@ class ChatPermissionTests(APITestCase):
             "/api/messages/", {"chat": self.chat.id, "text": "Blocked"}
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_stale_presence_is_reported_offline(self):
+        presence = UserPresence.objects.create(user=self.pharmacist, active_connections=1)
+        UserPresence.objects.filter(pk=presence.pk).update(last_seen=timezone.now() - timedelta(seconds=71))
+        self.assertFalse(presence_payload(self.pharmacist)["is_online"])
 
     def test_participant_can_block_and_unblock(self):
         self.client.force_authenticate(self.user)
@@ -167,3 +195,12 @@ class ChatWebSocketTests(TransactionTestCase):
         connected, close_code = await communicator.connect()
         self.assertFalse(connected)
         self.assertEqual(close_code, 4403)
+
+    async def test_chat_connection_tracks_presence(self):
+        communicator = self.socket(self.user)
+        self.assertTrue((await communicator.connect())[0])
+        presence = await database_sync_to_async(UserPresence.objects.get)(user=self.user)
+        self.assertGreater(presence.active_connections, 0)
+        await communicator.disconnect()
+        presence = await database_sync_to_async(UserPresence.objects.get)(user=self.user)
+        self.assertEqual(presence.active_connections, 0)
