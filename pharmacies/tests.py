@@ -30,6 +30,9 @@ class PharmacyApplicationTests(APITestCase):
         response = self.create_application()
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data["status"], "pending")
+        application = PharmacyApplication.objects.get(pk=response.data["id"])
+        self.assertEqual(str(application.latitude), self.payload["latitude"])
+        self.assertEqual(str(application.longitude), self.payload["longitude"])
         self.client.force_authenticate(self.other)
         self.assertEqual(self.client.get("/api/pharmacy-applications/").data, [])
 

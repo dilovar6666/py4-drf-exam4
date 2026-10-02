@@ -27,6 +27,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .pharmacy-pin span { font-size: 20px; font-weight: 800; line-height: 1; transform: rotate(45deg); }
 .pharmacy-pin.is-all-day::after { content: ""; position: absolute; right: -3px; top: -3px; width: 10px; height: 10px; border: 2px solid white; border-radius: 999px; background: #2563eb; }
 .pharmacy-pin.is-selected { width: 48px; height: 48px; border-radius: 17px 17px 17px 5px; background: #115e59; box-shadow: 0 0 0 7px rgb(20 184 166 / .2), 0 16px 35px rgb(15 118 110 / .42); transform: rotate(-45deg) scale(1.04); }
+.location-picker-pin { display: grid; width: 36px; height: 36px; place-items: center; border: 3px solid white; border-radius: 13px 13px 13px 4px; background: #0f766e; color: white; box-shadow: 0 10px 24px rgb(15 118 110 / .35); transform: rotate(-45deg); }
+.location-picker-pin span { font-size: 19px; font-weight: 900; transform: rotate(45deg); }
 
 /* Theme switch: PharmaMap interpretation of the Uiverse day/night motion reference. */
 .theme-switch { width: 58px; height: 34px; padding: 3px; border: 1px solid #dbe7e5; border-radius: 999px; background: white; box-shadow: 0 6px 20px rgb(15 23 42 / .08); cursor: pointer; }

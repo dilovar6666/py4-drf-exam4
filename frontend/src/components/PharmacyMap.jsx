@@ -38,14 +38,14 @@ function MapControls({ map, pharmacies, layer, onLayer, satelliteAvailable }) {
   return <>
     <div className="absolute right-3 top-3 z-[500] flex overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-[0_8px_28px_rgba(15,23,42,.18)]">
       <button className={`rounded-lg px-3 py-2 text-xs font-bold transition ${layer === "map" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`} onClick={() => onLayer("map")}>Карта</button>
-      <button className={`rounded-lg px-3 py-2 text-xs font-bold transition ${layer === "satellite" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`} title={satelliteAvailable ? "Спутниковый слой" : "Спутниковый слой недоступен"} onClick={() => onLayer("satellite")}>Спутник</button>
+      <button disabled={!satelliteAvailable} className={`rounded-lg px-3 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-40 ${layer === "satellite" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`} title={satelliteAvailable ? "Спутниковый слой" : "Добавьте VITE_MAPTILER_KEY, чтобы включить спутник"} onClick={() => onLayer("satellite")}>Спутник</button>
     </div>
     <div className="absolute right-3 top-1/2 z-[500] -translate-y-1/2 overflow-hidden rounded-xl border border-slate-200 shadow-[0_8px_28px_rgba(15,23,42,.18)]">
       <button className={control} onClick={() => map.zoomIn()} aria-label="Приблизить"><Plus className="size-5" /></button>
       <button className={control} onClick={() => map.zoomOut()} aria-label="Отдалить"><Minus className="size-5" /></button>
       <button className={control} onClick={locate} aria-label="Моё местоположение"><LocateFixed className="size-5" /></button>
       <button className={control} onClick={fitAll} aria-label="Показать все аптеки"><Maximize2 className="size-5" /></button>
-      <button className={control} onClick={() => onLayer(layer === "map" ? "satellite" : "map")} title={satelliteAvailable ? "Переключить слой" : "Спутниковый слой недоступен"} aria-label="Переключить слой"><Layers3 className="size-5" /></button>
+      <button className={`${control} disabled:cursor-not-allowed disabled:opacity-40`} disabled={!satelliteAvailable} onClick={() => onLayer(layer === "map" ? "satellite" : "map")} title={satelliteAvailable ? "Переключить слой" : "Добавьте VITE_MAPTILER_KEY, чтобы включить спутник"} aria-label="Переключить слой"><Layers3 className="size-5" /></button>
     </div>
   </>;
 }
@@ -56,25 +56,20 @@ export default function PharmacyMap({ pharmacies, selectedPharmacyId, onSelect, 
     const stored = localStorage.getItem("pharmamap_map_layer");
     return stored === "satellite" && mapTilerKey ? "satellite" : "map";
   });
-  const [layerMessage, setLayerMessage] = useState("");
   const valid = useMemo(() => pharmacies.filter((item) => Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))), [pharmacies]);
   const selected = valid.find((item) => item.id === selectedPharmacyId);
   function selectLayer(next) {
     if (next === "satellite" && !mapTilerKey) {
       setLayer("map");
-      setLayerMessage("Спутниковый слой недоступен: добавьте VITE_MAPTILER_KEY.");
-      window.setTimeout(() => setLayerMessage(""), 3500);
       return;
     }
     setLayer(next);
     localStorage.setItem("pharmamap_map_layer", next);
-    setLayerMessage("");
   }
   if (!valid.length) return <div className={cn("grid bg-slate-100", variant === "card" && "rounded-[1.5rem] border border-slate-200", className)}><PageState type="empty" message="Пока нет аптек для отображения" compact /></div>;
   const center = [Number((selected || valid[0]).latitude), Number((selected || valid[0]).longitude)];
   const satellite = layer === "satellite" && mapTilerKey;
   return <div className={cn("relative overflow-hidden bg-slate-100", variant === "card" && "rounded-[1.5rem] border border-slate-200 shadow-[0_20px_60px_rgba(15,118,110,.10)]", className)}>
-    {layerMessage && <div className="absolute left-1/2 top-4 z-[700] -translate-x-1/2 rounded-xl bg-slate-950 px-4 py-2 text-xs font-semibold text-white shadow-xl">{layerMessage}</div>}
     <MapContainer center={center} zoom={single ? 15 : 13} scrollWheelZoom zoomControl={false} className="z-0 size-full">
       {satellite ? <TileLayer key="satellite" attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' url={`https://api.maptiler.com/tiles/satellite-v4/{z}/{x}/{y}?key=${mapTilerKey}`} /> : <TileLayer key="map" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />}
       <MapSync selected={selected} pharmacies={valid} route={route} layer={layer} onLayer={selectLayer} satelliteAvailable={Boolean(mapTilerKey)} />
