@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Bell, HeartPulse, LogOut, Menu, UserRound, X } from "lucide-react";
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import useAuth from "../context/useAuth";
 import useNotifications from "../context/useNotifications";
 import Avatar from "./ui/Avatar";
@@ -14,11 +14,13 @@ const privateLinks = [{ to: "/reservations", label: "Брони" }, { to: "/chat
 export default function Navbar() {
   const { user, loading, logout } = useAuth();
   const { unreadCount } = useNotifications();
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin-panel");
   const [open, setOpen] = useState(false);
   const linkClass = ({ isActive }) => `focus-ring rounded-xl px-3.5 py-2 text-sm font-semibold transition ${isActive ? "bg-teal-50 text-teal-800" : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"}`;
   const links = user ? [...publicLinks, ...privateLinks, ...(user.role === "pharmacist" && !user.is_staff ? [{ to: "/pharmacist-workspace", label: "Рабочее место" }] : []), ...(user.is_staff ? [{ to: "/admin-panel", label: "Admin" }] : [])] : publicLinks;
 
-  return <header className="sticky top-0 z-[1000] border-b border-slate-200/80 bg-white/92 backdrop-blur-xl">
+  return <header className={`app-navbar sticky top-0 z-[1000] border-b backdrop-blur-xl ${isAdmin ? "is-admin" : "border-slate-200/80 bg-white/92"}`}>
     <div className="page-shell flex h-[72px] items-center justify-between gap-5">
       <Link to="/" className="focus-ring flex items-center gap-2.5 rounded-xl"><span className="grid size-10 place-items-center rounded-[14px] bg-teal-700 text-white shadow-lg shadow-teal-700/20"><HeartPulse className="size-5" /></span><span><span className="block text-[17px] font-extrabold tracking-[-.025em] text-slate-950">PharmaMap</span><span className="hidden text-[10px] font-semibold uppercase tracking-[.16em] text-teal-700 sm:block">лекарства рядом</span></span></Link>
       <nav className="hidden items-center gap-1 md:flex">{links.map((item) => <NavLink key={item.to} to={item.to} className={linkClass}>{item.label}</NavLink>)}</nav>

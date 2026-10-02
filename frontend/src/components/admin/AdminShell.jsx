@@ -21,16 +21,16 @@ const groups = [
 ];
 
 export default function AdminShell({ section, onSection, children }) {
-  return <div className="min-h-[calc(100dvh-72px)] bg-slate-100 lg:grid lg:grid-cols-[276px_1fr]">
-    <aside className="border-b border-slate-800 bg-slate-950 text-white lg:sticky lg:top-[72px] lg:h-[calc(100dvh-72px)] lg:border-b-0 lg:border-r">
-      <div className="flex items-center justify-between border-b border-white/8 p-5 lg:block">
+  return <div className="admin-layout min-h-[calc(100dvh-72px)] lg:grid lg:grid-cols-[248px_1fr]">
+    <aside className="admin-sidebar border-b text-white lg:sticky lg:top-[72px] lg:h-[calc(100dvh-72px)] lg:border-b-0 lg:border-r">
+      <div className="flex items-center justify-between border-b border-white/8 px-4 py-4 lg:block">
         <div><div className="flex items-center gap-2 text-sm font-extrabold"><ShieldCheck className="size-5 text-teal-300" />PharmaMap Admin</div><p className="mt-1 text-xs text-slate-400">Операционный центр сервиса</p></div>
-        <Link to="/" className="rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 lg:mt-4 lg:inline-flex">На карту</Link>
+        <Link to="/" className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs font-bold text-slate-300 hover:bg-white/10 lg:mt-3 lg:inline-flex">На карту</Link>
       </div>
-      <nav className="flex gap-2 overflow-x-auto px-3 py-3 lg:block lg:h-[calc(100%-112px)] lg:space-y-5 lg:overflow-y-auto lg:px-4">
-        {groups.map((group) => <div key={group.label} className="flex shrink-0 gap-1 lg:block lg:space-y-1">
-          <p className="hidden px-3 pb-1 text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-600 lg:block">{group.label}</p>
-          {group.items.map(([value, label, Icon]) => <button key={value} onClick={() => onSection(value)} className={cn("flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition lg:w-full", section === value ? "bg-teal-600 text-white shadow-lg shadow-teal-950/25" : "text-slate-400 hover:bg-white/7 hover:text-white")}><Icon className="size-4" />{label}</button>)}
+      <nav className="flex gap-1 overflow-x-auto px-2 py-2 lg:block lg:h-[calc(100%-96px)] lg:space-y-4 lg:overflow-y-auto lg:px-3 lg:py-4">
+        {groups.map((group) => <div key={group.label} className="flex shrink-0 gap-0.5 lg:block lg:space-y-0.5">
+          <p className="hidden px-2 pb-1 text-[9px] font-bold uppercase tracking-[.18em] text-slate-500 lg:block">{group.label}</p>
+          {group.items.map(([value, label, Icon]) => <button key={value} onClick={() => onSection(value)} className={cn("flex shrink-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-semibold transition lg:w-full", section === value ? "bg-teal-600/90 text-white shadow-sm" : "text-slate-400 hover:bg-white/6 hover:text-slate-100")}><Icon className="size-4" />{label}</button>)}
         </div>)}
       </nav>
     </aside>
