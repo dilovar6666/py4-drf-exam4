@@ -48,6 +48,7 @@ class Command(BaseCommand):
             role="user",
             is_staff=True,
             is_superuser=True,
+            is_email_verified=True,
         )
         users[admin.username] = admin
 
@@ -60,6 +61,7 @@ class Command(BaseCommand):
                 role="user",
                 is_staff=False,
                 is_superuser=False,
+                is_email_verified=True,
             )
 
         for index in range(1, 7):
@@ -72,6 +74,7 @@ class Command(BaseCommand):
                 role="pharmacist",
                 is_staff=False,
                 is_superuser=False,
+                is_email_verified=True,
             )
         return users
 
