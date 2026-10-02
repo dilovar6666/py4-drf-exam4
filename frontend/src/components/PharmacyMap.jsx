@@ -56,6 +56,7 @@ export default function PharmacyMap({ pharmacies, selectedPharmacyId, onSelect, 
     const stored = localStorage.getItem("pharmamap_map_layer");
     return stored === "satellite" && mapTilerKey ? "satellite" : "map";
   });
+  const [layerMessage, setLayerMessage] = useState("");
   const valid = useMemo(() => pharmacies.filter((item) => Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))), [pharmacies]);
   const selected = valid.find((item) => item.id === selectedPharmacyId);
   function selectLayer(next) {
@@ -63,15 +64,22 @@ export default function PharmacyMap({ pharmacies, selectedPharmacyId, onSelect, 
       setLayer("map");
       return;
     }
+    setLayerMessage("");
     setLayer(next);
     localStorage.setItem("pharmamap_map_layer", next);
   }
   if (!valid.length) return <div className={cn("grid bg-slate-100", variant === "card" && "rounded-[1.5rem] border border-slate-200", className)}><PageState type="empty" message="Пока нет аптек для отображения" compact /></div>;
   const center = [Number((selected || valid[0]).latitude), Number((selected || valid[0]).longitude)];
   const satellite = layer === "satellite" && mapTilerKey;
+  function handleSatelliteError() {
+    if (layer !== "satellite") return;
+    setLayer("map");
+    localStorage.setItem("pharmamap_map_layer", "map");
+    setLayerMessage("Спутниковый слой недоступен: проверьте ограничения ключа MapTiler.");
+  }
   return <div className={cn("relative overflow-hidden bg-slate-100", variant === "card" && "rounded-[1.5rem] border border-slate-200 shadow-[0_20px_60px_rgba(15,118,110,.10)]", className)}>
     <MapContainer center={center} zoom={single ? 15 : 13} scrollWheelZoom zoomControl={false} className="z-0 size-full">
-      {satellite ? <TileLayer key="satellite" attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' url={`https://api.maptiler.com/tiles/satellite-v4/{z}/{x}/{y}?key=${mapTilerKey}`} /> : <TileLayer key="map" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />}
+      {satellite ? <TileLayer key="satellite" attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' url={`https://api.maptiler.com/tiles/satellite-v4/{z}/{x}/{y}?key=${mapTilerKey}`} eventHandlers={{ tileerror: handleSatelliteError }} /> : <TileLayer key="map" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />}
       <MapSync selected={selected} pharmacies={valid} route={route} layer={layer} onLayer={selectLayer} satelliteAvailable={Boolean(mapTilerKey)} />
       {route?.positions?.length > 1 && <><Polyline positions={route.positions} pathOptions={{ color: "#0f766e", weight: 6, opacity: .9 }} /><CircleMarker center={route.positions[0]} radius={7} pathOptions={{ color: "white", weight: 3, fillColor: "#2563eb", fillOpacity: 1 }} /></>}
       {valid.map((pharmacy) => {
@@ -79,5 +87,6 @@ export default function PharmacyMap({ pharmacies, selectedPharmacyId, onSelect, 
         return <Marker key={pharmacy.id} position={[Number(pharmacy.latitude), Number(pharmacy.longitude)]} icon={markerIcon(pharmacy.id === selectedPharmacyId, pharmacy.is_24_hours)} zIndexOffset={pharmacy.id === selectedPharmacyId ? 1000 : 0} eventHandlers={{ click: () => onSelect?.(pharmacy.id) }}><Popup><div className="min-w-52"><div className="flex items-center justify-between gap-2"><strong>{pharmacy.name}</strong>{pharmacy.is_24_hours && <Badge variant="teal">24/7</Badge>}</div><p className="mt-2 flex gap-1.5 text-sm text-slate-600"><MapPinned className="mt-0.5 size-3.5 shrink-0 text-teal-600" />{pharmacy.address}</p><p className="mt-2 text-xs font-semibold text-emerald-700">{pharmacyHours(pharmacy)}</p>{offer && <p className="mt-2 font-extrabold text-teal-800">{formatPrice(offer.price)} · {offer.quantity} шт.</p>}<Link className="mt-3 inline-flex font-bold text-teal-700" to={`/pharmacies/${pharmacy.id}`}>Подробнее →</Link></div></Popup></Marker>;
       })}
     </MapContainer>
+    {layerMessage && <p role="status" className="absolute bottom-3 left-3 z-[500] max-w-sm rounded-xl bg-slate-950/85 px-3 py-2 text-xs font-semibold text-white shadow-lg">{layerMessage}</p>}
   </div>;
 }
