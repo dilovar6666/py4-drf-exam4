@@ -5,3 +5,4 @@ djangorestframework
 djangorestframework-simplejwt
 Pillow
 python-dotenv
+psycopg[binary]>=3.2,<4

@@ -3,6 +3,8 @@
 __pycache__/
 *.py[cod]
 db.sqlite3
+db.sqlite3.backup
+.postgres_data.json
 media/
 .DS_Store
 frontend/node_modules/
