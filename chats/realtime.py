@@ -24,14 +24,16 @@ def broadcast_message(message):
     )
     chat = message.chat
     if message.sender_id == chat.user_id:
-        recipients = [worker.user for worker in chat.pharmacy.pharmacyworker_set.select_related("user")]
-        title = "Новое сообщение клиента"
+        recipients = {worker.user for worker in chat.pharmacy.pharmacyworker_set.select_related("user")}
+        title = "Новое сообщение"
+        notification_message = f"{message.sender.username} написал вам"
     else:
-        recipients = [chat.user]
-        title = "Аптека ответила в чате"
+        recipients = {chat.user}
+        title = "Новое сообщение от аптеки"
+        notification_message = f"{message.sender.username} ответил(а) в чате"
     for recipient in recipients:
         if recipient.pk != message.sender_id:
-            push_notification(recipient, title, message.text[:180])
+            push_notification(recipient, title, notification_message)
 
 
 def broadcast_block(chat_id, blocked):
