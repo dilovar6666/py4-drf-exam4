@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from .filters import filter_medicines, get_available_medicine_pharmacies
 from .models import Category, Medicine, PharmacyMedicine, PriceHistory
 from .serializers import *
-from .ai import generate_medicine_answer
+from .ai import GeminiUnavailableError, generate_medicine_answer
 
 
 class IsAdminOrPharmacist(BasePermission):
@@ -145,7 +145,6 @@ class MedicineAiView(APIView):
             return Response({"question": "Вопрос слишком длинный."}, status=status.HTTP_400_BAD_REQUEST)
         try:
             answer = generate_medicine_answer(medicine, question)
-        except RuntimeError as exc:
-            detail = "AI-помощник временно недоступен. Проверьте настройку GEMINI_API_KEY." if "API_KEY" in str(exc) else "AI-помощник временно недоступен. Попробуйте позже."
-            return Response({"detail": detail}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except GeminiUnavailableError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         return Response({"answer": answer, "medicine": medicine.id})

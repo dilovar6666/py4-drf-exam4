@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
+from unittest.mock import MagicMock, patch
 from rest_framework.test import APIClient, APITestCase
 
 from notifications.models import Notification, StockNotification
@@ -47,7 +48,7 @@ class MedicineAiTests(TestCase):
         self.client.force_authenticate(self.user)
         response = self.client.post(self.url, {"question": "Расскажи состав"})
         self.assertEqual(response.status_code, 503)
-        self.assertIn("GEMINI_API_KEY", response.data["detail"])
+        self.assertIn("не настроен", response.data["detail"])
 
     @override_settings(GEMINI_API_KEY="")
     def test_personal_medical_advice_is_refused_without_external_call(self):
@@ -55,6 +56,18 @@ class MedicineAiTests(TestCase):
         response = self.client.post(self.url, {"question": "Какую дозу мне принимать?"})
         self.assertEqual(response.status_code, 200)
         self.assertIn("врачу", response.data["answer"])
+
+    @override_settings(GEMINI_API_KEY="configured-test-key")
+    @patch("medicines.ai.request.urlopen")
+    def test_configured_gemini_client_response_is_returned(self, urlopen):
+        response = MagicMock()
+        response.read.return_value = '{"candidates":[{"content":{"parts":[{"text":"Справочный ответ"}]}}]}'.encode("utf-8")
+        response.__enter__.return_value = response
+        urlopen.return_value = response
+        self.client.force_authenticate(self.user)
+        result = self.client.post(self.url, {"question": "Что это?"})
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.data["answer"], "Справочный ответ")
 
 
 class StockAvailabilityNotificationTests(APITestCase):
