@@ -1,5 +1,6 @@
 import { divIcon } from "leaflet";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
 
 const pickerIcon = divIcon({
@@ -15,6 +16,7 @@ function ClickPicker({ onChange }) {
 }
 
 export default function LocationPickerMap({ latitude, longitude, onChange }) {
+  const { t } = useTranslation();
   const position = useMemo(() => [Number(latitude), Number(longitude)], [latitude, longitude]);
   function update(point) {
     onChange({ latitude: point.lat.toFixed(6), longitude: point.lng.toFixed(6) });
@@ -25,6 +27,6 @@ export default function LocationPickerMap({ latitude, longitude, onChange }) {
       <ClickPicker onChange={update} />
       <Marker position={position} icon={pickerIcon} draggable eventHandlers={{ dragend: (event) => update(event.target.getLatLng()) }} />
     </MapContainer>
-    <div className="pointer-events-none absolute inset-x-3 top-3 z-[500] rounded-xl bg-white/95 px-4 py-3 text-xs font-semibold text-slate-700 shadow-lg backdrop-blur dark:bg-slate-900/95 dark:text-slate-200">Нажмите на карту или перетащите маркер</div>
+    <div className="pointer-events-none absolute inset-x-3 top-3 z-[500] rounded-xl bg-white/95 px-4 py-3 text-xs font-semibold text-slate-700 shadow-lg backdrop-blur dark:bg-slate-900/95 dark:text-slate-200">{t("common.mapHint", { defaultValue: "Нажмите на карту или перетащите маркер" })}</div>
   </div>;
 }

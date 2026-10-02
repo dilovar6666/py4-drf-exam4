@@ -32,7 +32,6 @@ export default function AdminManagement({ section, data, setData }) {
   if (section === "notifications") return <NotificationManager data={data} setData={setData} />;
   return <PageState type="empty" message="Раздел готовится" />;
 }
-
 function ApplicationManager({ data, setData }) {
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState("");
