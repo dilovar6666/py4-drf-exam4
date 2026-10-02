@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Bell, HeartPulse, LogOut, Menu, UserRound, X } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { mediaUrl } from "../api/axios";
 import useAuth from "../context/useAuth";
 import useNotifications from "../context/useNotifications";
 import Avatar from "./ui/Avatar";
@@ -26,10 +27,10 @@ export default function Navbar() {
       <nav className="hidden items-center gap-1 md:flex">{links.map((item) => <NavLink key={item.to} to={item.to} className={linkClass}>{item.label}</NavLink>)}</nav>
       <div className="hidden items-center gap-2 md:flex"><ThemeSwitch />{!loading && (user ? <>
         <Button asChild variant="ghost" size="icon" className="relative"><Link to="/notifications" aria-label="Уведомления"><Bell className="size-5" />{unreadCount > 0 && <span className="absolute right-0 top-0 grid min-w-4 place-items-center rounded-full bg-blue-600 px-1 text-[9px] font-bold text-white">{Math.min(unreadCount, 99)}</span>}</Link></Button>
-        <Button asChild variant="ghost" className="h-11 px-2"><Link to="/profile"><Avatar src={user.avatar} fallback={user.username?.slice(0, 1).toUpperCase()} className="size-8" /><span className="max-w-32 truncate">{user.username}</span></Link></Button>
+        <Button asChild variant="ghost" className="h-11 px-2"><Link to="/profile"><Avatar src={user.avatar ? mediaUrl(user.avatar) : undefined} fallback={user.username?.slice(0, 1).toUpperCase()} className="size-8" /><span className="max-w-32 truncate">{user.username}</span></Link></Button>
         <Button onClick={logout} variant="ghost" size="icon" aria-label="Выйти"><LogOut className="size-5" /></Button>
       </> : <><Button asChild variant="ghost"><Link to="/login">Войти</Link></Button><Button asChild><Link to="/register">Создать аккаунт</Link></Button></>)}</div>
-      <div className="flex items-center gap-1 md:hidden"><ThemeSwitch /><button className="focus-ring rounded-xl p-2 text-slate-600" onClick={() => setOpen((value) => !value)} aria-label={open ? "Закрыть меню" : "Открыть меню"}>{open ? <X /> : <Menu />}</button></div>
+      <div className="flex items-center gap-1 md:hidden">{user && <Link to="/profile" className="focus-ring rounded-xl"><Avatar src={user.avatar ? mediaUrl(user.avatar) : undefined} fallback={user.username?.slice(0, 1).toUpperCase()} className="size-8" /></Link>}<ThemeSwitch /><button className="focus-ring rounded-xl p-2 text-slate-600" onClick={() => setOpen((value) => !value)} aria-label={open ? "Закрыть меню" : "Открыть меню"}>{open ? <X /> : <Menu />}</button></div>
     </div>
     <AnimatePresence>{open && <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="border-t border-slate-100 bg-white p-4 shadow-xl md:hidden"><nav className="page-shell flex flex-col gap-1" onClick={() => setOpen(false)}>{links.map((item) => <NavLink key={item.to} to={item.to} className={linkClass}>{item.label}</NavLink>)}{user ? <><NavLink to="/notifications" className={linkClass}><span className="flex items-center justify-between gap-2"><span className="flex items-center gap-2"><Bell className="size-4" />Уведомления</span>{unreadCount > 0 && <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">{unreadCount}</span>}</span></NavLink><NavLink to="/profile" className={linkClass}><span className="flex items-center gap-2"><UserRound className="size-4" />Профиль</span></NavLink><button className="flex items-center gap-2 rounded-xl px-3.5 py-2 text-left text-sm font-semibold text-slate-600" onClick={logout}><LogOut className="size-4" />Выйти</button></> : <div className="mt-2 grid grid-cols-2 gap-2"><Button asChild variant="secondary"><Link to="/login">Войти</Link></Button><Button asChild><Link to="/register">Регистрация</Link></Button></div>}</nav></motion.div>}</AnimatePresence>
   </header>;

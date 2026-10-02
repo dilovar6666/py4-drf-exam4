@@ -6,6 +6,8 @@ from .models import Chat, ChatBlock, Message
 
 class ChatSerializer(serializers.ModelSerializer):
     counterpart_id = serializers.SerializerMethodField()
+    counterpart_username = serializers.SerializerMethodField()
+    counterpart_avatar = serializers.SerializerMethodField()
     counterpart_presence = serializers.SerializerMethodField()
     is_blocked = serializers.SerializerMethodField()
 
@@ -15,11 +17,26 @@ class ChatSerializer(serializers.ModelSerializer):
         extra_kwargs = {"user": {"read_only": True}}
 
     def get_counterpart_id(self, obj):
+        counterpart = self._counterpart(obj)
+        return counterpart.pk if counterpart else None
+
+    def _counterpart(self, obj):
         request = self.context.get("request")
         if request and request.user.role == "pharmacist" and not request.user.is_staff:
-            return obj.user_id
-        worker = obj.pharmacy.pharmacyworker_set.order_by("id").first()
-        return worker.user_id if worker else None
+            return obj.user
+        last_pharmacist_message = obj.message_set.exclude(sender=obj.user).select_related("sender").order_by("-created_at").first()
+        if last_pharmacist_message:
+            return last_pharmacist_message.sender
+        worker = obj.pharmacy.pharmacyworker_set.select_related("user").order_by("id").first()
+        return worker.user if worker else None
+
+    def get_counterpart_username(self, obj):
+        counterpart = self._counterpart(obj)
+        return counterpart.username if counterpart else None
+
+    def get_counterpart_avatar(self, obj):
+        counterpart = self._counterpart(obj)
+        return counterpart.avatar.url if counterpart and counterpart.avatar else None
 
     def get_is_blocked(self, obj):
         return obj.blocks.exists()
@@ -30,8 +47,8 @@ class ChatSerializer(serializers.ModelSerializer):
             return None
         if request.user.role == "pharmacist" and not request.user.is_staff:
             return presence_payload(obj.user)
-        last_pharmacist_message = obj.message_set.exclude(sender=obj.user).select_related("sender").order_by("-created_at").first()
-        return presence_payload(last_pharmacist_message.sender) if last_pharmacist_message else None
+        counterpart = self._counterpart(obj)
+        return presence_payload(counterpart) if counterpart else None
 
     def validate_pharmacy(self, value):
         if self.instance and value != self.instance.pharmacy:
