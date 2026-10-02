@@ -76,7 +76,7 @@ VITE_MAPTILER_KEY=
 VITE_ROUTING_URL=https://router.project-osrm.org
 ```
 
-Реальные ключи не коммитятся: оба `.env` находятся в `.gitignore`. `GEMINI_API_KEY` используется только Django и не попадает в frontend. Без `VITE_MAPTILER_KEY` стандартная карта продолжает работать, а спутниковый слой показывает понятное сообщение о недоступности. Для публичного deployment используйте собственный routing provider/лимиты вместо публичного demo OSRM endpoint.
+Реальные ключи не коммитятся: оба `.env` находятся в `.gitignore`. `GEMINI_API_KEY` используется только Django и не попадает в frontend. Без `VITE_MAPTILER_KEY` стандартная карта продолжает работать, а переключатель спутникового слоя остаётся отключённым. Для публичного deployment используйте собственный routing provider/лимиты вместо публичного demo OSRM endpoint.
 
 ## Demo accounts
 
