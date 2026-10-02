@@ -49,6 +49,8 @@ class PharmacistReviewSerializer(serializers.ModelSerializer):
         pharmacist = attrs.get("pharmacist", getattr(self.instance, "pharmacist", None))
         if pharmacist and pharmacist.role != CustomUser.Role.PHARMACIST:
             raise serializers.ValidationError({"pharmacist": "Пользователь не является фармацевтом."})
+        if request and pharmacist and request.user.pk == pharmacist.pk:
+            raise serializers.ValidationError({"pharmacist": "Нельзя оценивать самого себя."})
         if request and pharmacist:
             reviews = PharmacistReview.objects.filter(
                 user=request.user, pharmacist=pharmacist

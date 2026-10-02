@@ -59,3 +59,14 @@ class PharmacistReviewTests(APITestCase):
         self.assertEqual(
             PharmacistReview.objects.filter(user=user, pharmacist=pharmacist).count(), 1
         )
+
+    def test_pharmacist_cannot_review_self(self):
+        User = get_user_model()
+        pharmacist = User.objects.create_user(
+            username="self-rated-pharmacist", password="pass12345", role="pharmacist"
+        )
+        self.client.force_authenticate(pharmacist)
+        response = self.client.post(
+            "/api/pharmacist-reviews/", {"pharmacist": pharmacist.id, "rating": 5}
+        )
+        self.assertEqual(response.status_code, 400)

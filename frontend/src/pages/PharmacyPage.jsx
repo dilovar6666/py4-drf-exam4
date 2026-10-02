@@ -6,9 +6,11 @@ import api, { apiErrorMessage, mediaUrl } from "../api/axios";
 import PharmacyMap from "../components/PharmacyMap";
 import ReviewCard from "../components/ReviewCard";
 import StarRating from "../components/StarRating";
+import Avatar from "../components/ui/Avatar";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../components/ui/Dialog";
 import PageState from "../components/ui/PageState";
 import useAuth from "../context/useAuth";
 import useOpenPharmacyChat from "../hooks/useOpenPharmacyChat";
@@ -22,14 +24,23 @@ export default function PharmacyPage() {
   const [status, setStatus] = useState("loading");
   const [form, setForm] = useState({ rating: 5, text: "" });
   const [formState, setFormState] = useState({});
+  const [employees, setEmployees] = useState([]);
+  const [pharmacistReviews, setPharmacistReviews] = useState({});
+  const [ratingTarget, setRatingTarget] = useState(null);
+  const [pharmacistForm, setPharmacistForm] = useState({ rating: 5, text: "" });
+  const [pharmacistFormState, setPharmacistFormState] = useState({});
 
   useEffect(() => {
     let active = true;
-    Promise.all([api.get(`pharmacies/${id}/`), api.get(`pharmacies/${id}/reviews/`)])
-      .then(([pharmacyResponse, reviewResponse]) => {
+    Promise.all([api.get(`pharmacies/${id}/`), api.get(`pharmacies/${id}/reviews/`), api.get(`pharmacies/${id}/employees/`)])
+      .then(async ([pharmacyResponse, reviewResponse, employeeResponse]) => {
         if (!active) return;
         setPharmacy(pharmacyResponse.data);
         setReviews(reviewResponse.data);
+        const workers = employeeResponse.data.filter((worker) => worker.role !== "owner");
+        setEmployees(workers);
+        const reviewEntries = await Promise.all(workers.map(async (worker) => [worker.user, (await api.get(`pharmacist-reviews/?pharmacist=${worker.user}`)).data]));
+        setPharmacistReviews(Object.fromEntries(reviewEntries));
         setStatus("ready");
       })
       .catch(() => active && setStatus("error"));
@@ -54,6 +65,18 @@ export default function PharmacyPage() {
     } catch (error) {
       setFormState({ error: apiErrorMessage(error, "Не удалось добавить отзыв.") });
     }
+  }
+
+  async function submitPharmacistReview(event) {
+    event.preventDefault();
+    if (!ratingTarget) return;
+    setPharmacistFormState({ loading: true });
+    try {
+      const { data } = await api.post("pharmacist-reviews/", { pharmacist: ratingTarget.user, rating: Number(pharmacistForm.rating), text: pharmacistForm.text });
+      setPharmacistReviews((current) => ({ ...current, [ratingTarget.user]: [data, ...(current[ratingTarget.user] || [])] }));
+      setPharmacistForm({ rating: 5, text: "" });
+      setPharmacistFormState({ success: "Оценка сотрудника сохранена." });
+    } catch (error) { setPharmacistFormState({ error: apiErrorMessage(error, "Не удалось сохранить оценку сотрудника.") }); }
   }
 
   if (status === "loading") return <PageState type="loading" />;
@@ -108,6 +131,19 @@ export default function PharmacyPage() {
           </div>
         </CardContent></Card>
       </section>
+
+      <section className="mt-12">
+        <div className="mb-6"><p className="text-xs font-bold uppercase tracking-[.18em] text-teal-700">Команда аптеки</p><h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-950">Сотрудники аптеки</h2></div>
+        {employees.length ? <div className="grid gap-4 md:grid-cols-2">{employees.map((employee) => {
+          const workerReviews = pharmacistReviews[employee.user] || [];
+          const workerAverage = workerReviews.length ? workerReviews.reduce((sum, review) => sum + review.rating, 0) / workerReviews.length : 0;
+          return <Card key={employee.id}><CardContent className="flex items-center gap-4 p-5"><Avatar src={employee.user_avatar ? mediaUrl(employee.user_avatar) : undefined} fallback={employee.username?.slice(0, 1).toUpperCase()} className="size-12" /><div className="min-w-0 flex-1"><b className="block truncate">{employee.username}</b><p className="text-xs text-slate-500">Фармацевт</p><div className="mt-2"><StarRating value={workerAverage} reviewCount={workerReviews.length} size="sm" /></div></div>{user && user.id !== employee.user && <Button size="sm" variant="outline" onClick={() => { setRatingTarget(employee); setPharmacistFormState({}); }}>Оценить</Button>}</CardContent></Card>;
+        })}</div> : <Card><CardContent className="p-6 text-sm text-slate-500">Сотрудники пока не добавлены.</CardContent></Card>}
+      </section>
+
+      <Dialog open={Boolean(ratingTarget)} onOpenChange={(open) => !open && setRatingTarget(null)}>
+        <DialogContent><DialogTitle>Оценить сотрудника</DialogTitle><DialogDescription>{ratingTarget?.username} · оценка обслуживания в этой аптеке</DialogDescription><form onSubmit={submitPharmacistReview} className="mt-5 space-y-4"><StarRating value={pharmacistForm.rating} interactive size="lg" onChange={(rating) => setPharmacistForm((current) => ({ ...current, rating }))} /><textarea rows="4" value={pharmacistForm.text} onChange={(event) => setPharmacistForm((current) => ({ ...current, text: event.target.value }))} placeholder="Короткий комментарий" className="focus-ring w-full resize-none rounded-xl border border-slate-200 p-3 text-sm" />{pharmacistFormState.error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{pharmacistFormState.error}</p>}{pharmacistFormState.success && <p className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">{pharmacistFormState.success}</p>}<Button type="submit" disabled={pharmacistFormState.loading} className="w-full">{pharmacistFormState.loading ? "Сохраняем..." : "Сохранить оценку"}</Button></form></DialogContent>
+      </Dialog>
 
       <section className="mt-12">
         <div className="mb-6"><p className="text-xs font-bold uppercase tracking-[.18em] text-teal-700">Опыт покупателей</p><h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-950">Отзывы</h2></div>
