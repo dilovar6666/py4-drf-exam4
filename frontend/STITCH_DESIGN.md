@@ -61,3 +61,18 @@ Stitch was run again against the same project and the `PharmaMap Calm Clinical P
 - Public Leaderboard — Stitch session `4943795742611323719` completed, but the connector response did not expose a screen ID.
 
 The generated screens were used as product-design references, not copied as application code. The React implementation carries over the fixed role-aware sidebar, factual KPI hierarchy, compact management tables, semantic status badges, low-stock emphasis, explicit TJS pricing, separate pharmacy/pharmacist rankings, and pharmacist-specific review transparency. Generated placeholder metrics, unsupported clinical fields and fictional revenue were deliberately excluded; all UI values come from the existing API.
+
+## Realtime, applications, analytics, theme and AI — 2026-10-02
+
+Stitch was run again with `mcp__stitch__generate_screen_from_text`, project `2059521797541322910`, design system `17285986900585481743`, and model `GEMINI_3_5_FLASH_LITE`. Eight new product screens were created:
+
+- Redesigned Admin Dashboard — `2af6bca2251349f68b6fb41bdda703ec`
+- Pharmacy Applications review — `94feea693e8c44268ee1c45aa5d3a645`
+- Pharmacist Reservation Workspace — `3fae7f60a3fb4074baf49c182238582b`
+- Realtime Chat — `1236d63e69b84e3eadd90052ce0d6cd5`
+- Realtime Notifications — `ffd4ad700c9249938b77bbb103ec2559`
+- Admin Analytics — `ed1859e96cd64f4993e5bc9ee3c0bfcf`
+- Dark map/admin theme variant — `218b56cbdfad45fd86e2c014911ff227`
+- Gemini Pharma AI medicine assistant — `f954254277ca431cb9b20f914d47d891`
+
+The selected visual language keeps Calm Clinical Precision but makes the admin surfaces denser: grouped navigation, compact KPI hierarchy, sticky data surfaces, quiet borders and clear operational queues. Dashboard was intentionally separated from Analytics. The React implementation uses the operational overview and attention queue from Dashboard, the factual chart/ranking composition from Analytics, the approval decision surface from Pharmacy Applications, the two-pane realtime model from Chat, and the contextual safety notice plus conversation sheet from Pharma AI. Dark mode adopts the proposed charcoal layers (`#0c1114`, `#12191d`, `#182126`) rather than pure black. Unsupported Stitch concepts such as fictional telemetry, Russian medical registry fields, invented people, rouble values and accounting profit were deliberately not implemented.
