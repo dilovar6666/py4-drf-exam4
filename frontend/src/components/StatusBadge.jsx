@@ -5,5 +5,5 @@ import Badge from "./ui/Badge";
 const states = { pending: ["warning", Clock3], confirmed: ["blue", CheckCircle2], ready: ["success", PackageCheck], completed: ["default", CheckCircle2], cancelled: ["danger", XCircle] };
 export default function StatusBadge({ status }) {
   const { t } = useTranslation(); const [variant, Icon] = states[status] || ["default", Clock3];
-  return <Badge variant={variant}><Icon className="size-3.5" />{t(`status.${status}`, { defaultValue: status })}</Badge>;
+  return <Badge variant={variant}><Icon className="size-3.5" />{t(`reservation.status.${status}`, { defaultValue: t(`status.${status}`, { defaultValue: status }) })}</Badge>;
 }
