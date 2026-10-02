@@ -14,3 +14,12 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class UserPresence(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="presence")
+    active_connections = models.PositiveIntegerField(default=0)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} online={self.active_connections > 0}"

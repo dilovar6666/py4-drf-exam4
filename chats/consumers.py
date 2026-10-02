@@ -1,6 +1,7 @@
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
+from accounts.presence import mark_offline, mark_online, mark_seen
 from .filters import can_access_chat
 from .models import Chat, ChatBlock, Message
 from .realtime import broadcast_message, message_payload
@@ -15,13 +16,18 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             return
         self.group_name = f"chat_{self.chat_id}"
         await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await database_sync_to_async(mark_online)(user)
         await self.accept()
 
     async def disconnect(self, close_code):
         if hasattr(self, "group_name"):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
+            await database_sync_to_async(mark_offline)(self.scope["user"])
 
     async def receive_json(self, content):
+        if content.get("type") == "ping":
+            await database_sync_to_async(mark_seen)(self.scope["user"])
+            return
         text = str(content.get("text", "")).strip()
         if not text:
             return

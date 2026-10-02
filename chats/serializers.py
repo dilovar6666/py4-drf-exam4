@@ -1,10 +1,12 @@
 from rest_framework import serializers
 
+from accounts.presence import presence_payload
 from .models import Chat, ChatBlock, Message
 
 
 class ChatSerializer(serializers.ModelSerializer):
     counterpart_id = serializers.SerializerMethodField()
+    counterpart_presence = serializers.SerializerMethodField()
     is_blocked = serializers.SerializerMethodField()
 
     class Meta:
@@ -21,6 +23,15 @@ class ChatSerializer(serializers.ModelSerializer):
 
     def get_is_blocked(self, obj):
         return obj.blocks.exists()
+
+    def get_counterpart_presence(self, obj):
+        request = self.context.get("request")
+        if not request:
+            return None
+        if request.user.role == "pharmacist" and not request.user.is_staff:
+            return presence_payload(obj.user)
+        last_pharmacist_message = obj.message_set.exclude(sender=obj.user).select_related("sender").order_by("-created_at").first()
+        return presence_payload(last_pharmacist_message.sender) if last_pharmacist_message else None
 
     def validate_pharmacy(self, value):
         if self.instance and value != self.instance.pharmacy:

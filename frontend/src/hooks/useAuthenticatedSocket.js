@@ -12,17 +12,24 @@ export default function useAuthenticatedSocket(path, onMessage, enabled = true) 
     if (!enabled || !path || !token) return undefined;
     let stopped = false;
     let reconnectTimer;
+    let heartbeatTimer;
     function connect() {
       if (stopped) return;
       setStatus("connecting");
       const socket = new WebSocket(`${WS_URL}${path}?token=${encodeURIComponent(token)}`);
       socketRef.current = socket;
-      socket.onopen = () => setStatus("open");
+      socket.onopen = () => {
+        setStatus("open");
+        heartbeatTimer = window.setInterval(() => {
+          if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "ping" }));
+        }, 25000);
+      };
       socket.onmessage = (event) => {
         try { handlerRef.current?.(JSON.parse(event.data)); } catch { /* ignore malformed frames */ }
       };
       socket.onerror = () => setStatus("error");
       socket.onclose = (event) => {
+        window.clearInterval(heartbeatTimer);
         socketRef.current = null;
         if (!stopped && event.code !== 4401 && event.code !== 4403) {
           setStatus("reconnecting");
@@ -34,6 +41,7 @@ export default function useAuthenticatedSocket(path, onMessage, enabled = true) 
     return () => {
       stopped = true;
       window.clearTimeout(reconnectTimer);
+      window.clearInterval(heartbeatTimer);
       socketRef.current?.close();
     };
   }, [enabled, path]);
