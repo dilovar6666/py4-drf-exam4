@@ -1,5 +1,34 @@
 # PharmaMap
 
+## Docker, Redis, Celery and email verification
+
+The production-shaped local stack is defined in `docker-compose.yml`: PostgreSQL, Redis, the Django ASGI backend, a Celery worker, the Vite build served by Nginx, and the Nginx reverse proxy. Copy `.env.example` to `.env`, fill local secrets, then run:
+
+```powershell
+Copy-Item .env.example .env
+docker compose build
+docker compose up -d
+docker compose ps
+docker compose logs -f backend celery_worker
+```
+
+Nginx serves the app at `http://localhost/`, proxies `/api/`, `/admin/`, `/media/`, and upgrades `/ws/` connections. PostgreSQL and Redis are internal services with healthchecks and persistent volumes. The backend entrypoint runs migrations and `collectstatic`; it never creates migrations automatically.
+
+Registration now creates a 6-digit email verification code valid for 10 minutes. The frontend route is `/verify-email`; the API endpoints are `/api/auth/verify-email/` and `/api/auth/resend-email-code/`. Existing users are marked verified by the accounts data migration so demo accounts keep working.
+
+For SMTP, put your own provider values in the root `.env` (never in Git):
+
+```env
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-account@example.com
+EMAIL_HOST_PASSWORD=your-app-password
+EMAIL_USE_TLS=True
+DEFAULT_FROM_EMAIL=your-account@example.com
+```
+
+For Gmail commonly use `smtp.gmail.com:587`; for Microsoft 365 use `smtp.office365.com:587`. Many providers require an app password. If these variables are empty, development uses Django's console email backend; that is not a real delivery test.
+
 PharmaMap — учебный сервис поиска лекарств и аптек Душанбе. Пользователь сравнивает цены и наличие на карте, создаёт бронь, пишет аптеке и оставляет отзывы. Фармацевт работает только с данными своей аптеки, а staff использует React admin panel.
 
 ## Stack

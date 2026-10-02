@@ -1,0 +1,13 @@
+.git
+.venv
+.venv_runtime
+__pycache__
+*.pyc
+db.sqlite3
+db.sqlite3.backup
+.postgres_data.json
+.env
+media
+staticfiles
+frontend/node_modules
+frontend/dist
