@@ -1,48 +1,32 @@
-import { Building2, MessageCircle, Pill, Star, TicketCheck, UsersRound } from "lucide-react";
-import { formatPrice } from "../../lib/currency";
-import StarRating from "../StarRating";
+import { Building2, ClipboardList, MessageCircle, PackageX, Pill, TicketCheck, UsersRound } from "lucide-react";
 import Badge from "../ui/Badge";
 import { Card, CardContent } from "../ui/Card";
 
-const metricColorClasses = {
-  teal: "bg-teal-50 text-teal-700",
-  blue: "bg-blue-50 text-blue-700",
-  violet: "bg-violet-50 text-violet-700",
-  amber: "bg-amber-50 text-amber-700",
-  emerald: "bg-emerald-50 text-emerald-700",
-  cyan: "bg-cyan-50 text-cyan-700",
-};
+const colors = { teal: "bg-teal-50 text-teal-700", blue: "bg-blue-50 text-blue-700", violet: "bg-violet-50 text-violet-700", amber: "bg-amber-50 text-amber-700", cyan: "bg-cyan-50 text-cyan-700", rose: "bg-rose-50 text-rose-700" };
 
-export default function AdminDashboard({ data }) {
-  const completed = data.reservations.filter((item) => item.status === "completed");
+export default function AdminDashboard({ data, onNavigate }) {
   const pending = data.reservations.filter((item) => item.status === "pending");
-  const turnover = completed.reduce((sum, item) => {
-    const stock = data.inventory.find((entry) => entry.id === item.pharmacy_medicine);
-    return sum + Number(stock?.price || 0) * item.quantity;
-  }, 0);
-  const average = data.reviews.length ? data.reviews.reduce((sum, item) => sum + item.rating, 0) / data.reviews.length : 0;
+  const lowStock = data.inventory.filter((item) => Number(item.quantity) <= 5);
+  const pendingApplications = data.applications.filter((item) => item.status === "pending");
+  const recentReservations = [...data.reservations].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6);
   const metrics = [
-    ["Аптеки", data.pharmacies.length, Building2, "teal"],
-    ["Лекарства", data.medicines.length, Pill, "blue"],
-    ["Пользователи", data.users.length, UsersRound, "violet"],
-    ["Ожидают", pending.length, TicketCheck, "amber"],
-    ["Завершены", completed.length, TicketCheck, "emerald"],
-    ["Активные чаты", data.chats.length, MessageCircle, "cyan"],
+    ["Аптеки", data.pharmacies.length, Building2, "teal", "pharmacies"],
+    ["Лекарства", data.medicines.length, Pill, "blue", "medicines"],
+    ["Пользователи", data.users.length, UsersRound, "violet", "users"],
+    ["Новые брони", pending.length, TicketCheck, "amber", "reservations"],
+    ["Активные чаты", data.chats.length, MessageCircle, "cyan", "chats"],
+    ["Низкий остаток", lowStock.length, PackageX, "rose", "inventory"],
+    ["Заявки аптек", pendingApplications.length, ClipboardList, "teal", "applications"],
   ];
-  const days = Array.from({ length: 7 }, (_, offset) => {
-    const date = new Date(); date.setDate(date.getDate() - (6 - offset));
-    const key = date.toISOString().slice(0, 10);
-    return { label: date.toLocaleDateString("ru-RU", { weekday: "short" }), value: data.reservations.filter((item) => item.created_at?.slice(0, 10) === key).length };
-  });
-  const max = Math.max(1, ...days.map((item) => item.value));
-  const lowStock = data.inventory.filter((item) => item.quantity <= 5).slice(0, 7);
-  const topPharmacies = [...data.pharmacies].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
-  const topPharmacists = [...data.pharmacists].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
-  return <div><AdminHeading eyebrow="Обзор" title="Dashboard" description="Операционные показатели PharmaMap на основе текущих API-данных." /><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{metrics.map(([label, value, Icon, color]) => <Card key={label}><CardContent className="flex items-center gap-4 p-5"><span className={`grid size-12 place-items-center rounded-2xl ${metricColorClasses[color]}`}><Icon className="size-5" /></span><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</p><strong className="mt-1 block text-3xl font-extrabold tracking-tight">{value}</strong></div></CardContent></Card>)}</div>
-    <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_.6fr]"><Card><CardContent className="p-6"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Брони за 7 дней</h2><p className="text-xs text-slate-500">Созданные бронирования по дням</p></div><Badge variant="teal">{data.reservations.length} всего</Badge></div><div className="mt-8 flex h-48 items-end gap-3">{days.map((day) => <div key={day.label} className="flex flex-1 flex-col items-center gap-2"><span className="text-xs font-bold text-slate-600">{day.value}</span><div className="w-full rounded-t-xl bg-gradient-to-t from-teal-700 to-teal-400" style={{ height: `${Math.max(8, day.value / max * 150)}px` }} /><span className="text-[11px] text-slate-400">{day.label}</span></div>)}</div></CardContent></Card><Card><CardContent className="p-6"><h2 className="font-extrabold">Завершённые брони</h2><strong className="mt-5 block text-4xl font-extrabold tracking-tight">{formatPrice(turnover)}</strong><p className="mt-1 text-xs text-slate-500">Оборот по завершённым броням, не бухгалтерская прибыль</p><div className="mt-6 rounded-2xl bg-amber-50 p-4"><StarRating value={average} count={data.reviews.length} /><p className="mt-2 text-xs text-amber-800">Средний рейтинг аптек по отзывам</p></div></CardContent></Card></div>
-    <div className="mt-6 grid gap-6 xl:grid-cols-3"><RankCard title="Лучшие аптеки" items={topPharmacies} /><RankCard title="Лучшие фармацевты" items={topPharmacists} /><Card><CardContent className="p-6"><h2 className="font-extrabold">Низкий остаток</h2><div className="mt-4 space-y-3">{lowStock.length ? lowStock.map((item) => <div key={item.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-3"><span className="text-sm font-semibold">#{item.medicine} · аптека #{item.pharmacy}</span><Badge variant={item.quantity ? "warning" : "danger"}>{item.quantity} шт.</Badge></div>) : <p className="text-sm text-slate-500">Критичных остатков нет.</p>}</div></CardContent></Card></div>
+  return <div>
+    <AdminHeading eyebrow="Обзор" title="Dashboard" description="Короткая операционная сводка. Детальные графики и рейтинги находятся в Analytics." />
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{metrics.map(([label, value, Icon, color, target]) => <button key={label} onClick={() => onNavigate(target)} className="text-left"><Card className="h-full transition hover:-translate-y-0.5 hover:shadow-lg"><CardContent className="flex items-center gap-4 p-5"><span className={`grid size-11 place-items-center rounded-2xl ${colors[color]}`}><Icon className="size-5" /></span><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</p><strong className="mt-1 block text-3xl font-extrabold">{value}</strong></div></CardContent></Card></button>)}</div>
+    <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
+      <Card><CardContent className="p-0"><div className="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 className="font-extrabold">Последние брони</h2><p className="text-xs text-slate-500">Текущая очередь обработки</p></div><button onClick={() => onNavigate("reservations")} className="text-xs font-bold text-teal-700">Открыть все</button></div><div className="divide-y divide-slate-100">{recentReservations.map((item) => <div key={item.id} className="flex items-center justify-between gap-4 p-4"><div><b className="text-sm">Бронь #{item.id}</b><p className="text-xs text-slate-500">Пользователь #{item.user} · {item.quantity} уп.</p></div><Badge variant={item.status === "pending" ? "warning" : "teal"}>{item.status}</Badge></div>)}{!recentReservations.length && <p className="p-6 text-sm text-slate-500">Броней пока нет.</p>}</div></CardContent></Card>
+      <Card><CardContent className="p-6"><h2 className="font-extrabold">Требует внимания</h2><div className="mt-5 space-y-3"><Attention label="Заявки аптек" value={pendingApplications.length} onClick={() => onNavigate("applications")} /><Attention label="Ожидающие брони" value={pending.length} onClick={() => onNavigate("reservations")} /><Attention label="Низкий остаток" value={lowStock.length} onClick={() => onNavigate("inventory")} /></div></CardContent></Card>
+    </div>
   </div>;
 }
 
+function Attention({ label, value, onClick }) { return <button onClick={onClick} className="flex w-full items-center justify-between rounded-2xl bg-slate-50 p-4 text-left transition hover:bg-teal-50"><span className="text-sm font-semibold">{label}</span><Badge variant={value ? "warning" : "teal"}>{value}</Badge></button>; }
 export function AdminHeading({ eyebrow, title, description, actions }) { return <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-teal-700">{eyebrow}</p><h1 className="mt-2 text-3xl font-extrabold tracking-[-.035em] text-slate-950">{title}</h1><p className="mt-2 max-w-2xl text-sm text-slate-500">{description}</p></div>{actions}</div>; }
-function RankCard({ title, items }) { return <Card><CardContent className="p-6"><h2 className="font-extrabold">{title}</h2><div className="mt-4 space-y-4">{items.length ? items.map((item, index) => <div key={item.id} className="flex items-center gap-3"><span className="grid size-8 place-items-center rounded-xl bg-teal-50 text-xs font-extrabold text-teal-800">{index + 1}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{item.name || item.username}</p><StarRating value={item.rating || 0} count={item.review_count || 0} size="sm" showValue /></div></div>) : <p className="text-sm text-slate-500">Пока нет оценок.</p>}</div></CardContent></Card>; }

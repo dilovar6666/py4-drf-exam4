@@ -23,12 +23,35 @@ const resourceConfigs = {
 
 export default function AdminManagement({ section, data, setData }) {
   if (resourceConfigs[section]) return <ResourceManager section={section} config={resourceConfigs[section]} data={data} setData={setData} />;
+  if (section === "applications") return <ApplicationManager data={data} setData={setData} />;
   if (section === "pharmacists") return <PharmacistManager data={data} setData={setData} />;
   if (section === "reservations") return <ReservationManager data={data} setData={setData} />;
   if (section === "reviews") return <ReviewManager data={data} setData={setData} />;
-  if (section === "chats") return <SimpleList title="Чаты" description="Диалоги пользователей с аптеками." rows={data.chats.map((item) => [item.id, `Чат #${item.id}`, `Пользователь #${item.user}`, data.pharmacies.find((pharmacy) => pharmacy.id === item.pharmacy)?.name || `Аптека #${item.pharmacy}`])} action={<Button asChild><Link to="/chats">Открыть messenger</Link></Button>} />;
+  if (section === "chats") return <ChatManager data={data} setData={setData} />;
   if (section === "notifications") return <NotificationManager data={data} setData={setData} />;
   return <PageState type="empty" message="Раздел готовится" />;
+}
+
+function ApplicationManager({ data, setData }) {
+  const [busy, setBusy] = useState(null);
+  const [error, setError] = useState("");
+  async function decide(item, action) {
+    setBusy(item.id); setError("");
+    try {
+      const response = await api.post(`pharmacy-applications/${item.id}/${action}/`);
+      setData((current) => {
+        const applications = current.applications.map((entry) => entry.id === response.data.id ? response.data : entry);
+        return { ...current, applications };
+      });
+    } catch (requestError) {
+      setError(apiErrorMessage(requestError, "Не удалось обработать заявку."));
+    } finally { setBusy(null); }
+  }
+  return <div>
+    <AdminHeading eyebrow="Модерация" title="Заявки аптек" description="Проверяйте данные заявки до создания аптеки и назначения заявителя фармацевтом." />
+    {error && <p className="mb-4 rounded-2xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+    <div className="grid gap-4">{data.applications.map((item) => <Card key={item.id}><CardContent className="grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-center"><div><div className="flex flex-wrap items-center gap-3"><h2 className="text-lg font-extrabold">{item.name}</h2><StatusBadge status={item.status} /></div><p className="mt-2 text-sm text-slate-600">{item.address}</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500"><span>Заявитель: {item.applicant_username}</span><span>{item.phone || "Телефон не указан"}</span><span>{new Date(item.created_at).toLocaleString("ru-RU")}</span></div>{item.description && <p className="mt-3 max-w-3xl text-sm text-slate-500">{item.description}</p>}</div>{item.status === "pending" && <div className="flex gap-2"><Button variant="secondary" disabled={busy === item.id} onClick={() => decide(item, "reject")}>Отклонить</Button><Button disabled={busy === item.id} onClick={() => decide(item, "approve")}>Одобрить</Button></div>}</CardContent></Card>)}{!data.applications.length && <PageState type="empty" message="Заявок пока нет" />}</div>
+  </div>;
 }
 
 function ResourceManager({ section, config, data, setData }) {
@@ -86,6 +109,20 @@ function ReservationManager({ data, setData }) {
 function ReviewManager({ data, setData }) {
   async function remove(id) { if (!window.confirm("Удалить отзыв?")) return; await api.delete(`reviews/${id}/`); setData((current) => ({ ...current, reviews: current.reviews.filter((item) => item.id !== id) })); }
   return <><AdminHeading eyebrow="Качество" title="Отзывы" description="Модерация отзывов об аптеках." /><div className="grid gap-3">{data.reviews.map((item) => <Card key={item.id}><CardContent className="flex items-start gap-4 p-5"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-3"><StarRating value={item.rating} size="sm" /><Badge>Аптека #{item.pharmacy}</Badge><span className="text-xs text-slate-400">Пользователь #{item.user}</span></div><p className="mt-3 text-sm text-slate-600">{item.text || "Без комментария"}</p></div><Button size="icon" variant="ghost" onClick={() => remove(item.id)}><Trash2 className="size-4 text-red-600" /></Button></CardContent></Card>)}</div></>;
+}
+
+function ChatManager({ data, setData }) {
+  async function unblock(id) {
+    await api.delete(`chat-blocks/${id}/`);
+    setData((current) => ({ ...current, chatBlocks: current.chatBlocks.filter((item) => item.id !== id) }));
+  }
+  return <div>
+    <AdminHeading eyebrow="Коммуникации" title="Чаты и блокировки" description="Staff видит все диалоги и может снять активную блокировку. История сообщений сохраняется." actions={<Button asChild><Link to="/chats">Открыть messenger</Link></Button>} />
+    <div className="grid gap-6 xl:grid-cols-[1fr_400px]">
+      <Card><CardContent className="divide-y divide-slate-100 p-0">{data.chats.map((item) => <div key={item.id} className="p-4"><div className="flex items-center justify-between gap-4"><b>Чат #{item.id}</b>{item.is_blocked && <Badge variant="danger">Заблокирован</Badge>}</div><p className="mt-1 text-sm text-slate-500">Пользователь #{item.user} · {data.pharmacies.find((pharmacy) => pharmacy.id === item.pharmacy)?.name || `Аптека #${item.pharmacy}`}</p></div>)}{!data.chats.length && <PageState type="empty" message="Чатов пока нет" compact />}</CardContent></Card>
+      <Card><CardContent className="p-5"><h2 className="font-extrabold">Активные блокировки</h2><div className="mt-4 space-y-3">{data.chatBlocks.map((item) => <div key={item.id} className="rounded-2xl bg-slate-50 p-4"><p className="text-sm font-bold">Чат #{item.chat}</p><p className="mt-1 text-xs text-slate-500">{item.blocker_username} заблокировал {item.blocked_username}</p><Button size="sm" variant="secondary" className="mt-3" onClick={() => unblock(item.id)}>Разблокировать</Button></div>)}{!data.chatBlocks.length && <p className="text-sm text-slate-500">Активных блокировок нет.</p>}</div></CardContent></Card>
+    </div>
+  </div>;
 }
 
 function NotificationManager({ data, setData }) {
