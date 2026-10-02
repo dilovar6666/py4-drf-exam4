@@ -21,10 +21,12 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^13.4.6",
+    "i18next": "^26.4.2",
     "leaflet": "latest",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-i18next": "^17.0.15",
     "react-leaflet": "latest",
     "react-router-dom": "latest",
     "tailwind-merge": "^3.7.0"

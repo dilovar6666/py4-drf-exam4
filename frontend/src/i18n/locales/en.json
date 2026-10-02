@@ -1,0 +1,10 @@
+{
+  "nav": {"search":"Search","leaderboard":"Ratings","reservations":"Reservations","messages":"Messages","addPharmacy":"Add pharmacy","workspace":"Workspace","admin":"Admin","profile":"Profile","notifications":"Notifications","login":"Sign in","register":"Register","logout":"Sign out","map":"Map"},
+  "language": {"label":"Language","ru":"Русский","tj":"Тоҷикӣ","en":"English"},
+  "theme": {"light":"Light theme","dark":"Dark theme","system":"System theme"},
+  "status": {"pending":"Pending","confirmed":"Confirmed","ready":"Ready","completed":"Completed","cancelled":"Cancelled"},
+  "common": {"pharmacy":"Pharmacy","medicine":"Medicine","address":"Address","phone":"Phone","hours":"Opening hours","open":"Open","closed":"Closed","allDay":"24/7","details":"Details","write":"Message","route":"Get directions","cancel":"Cancel","save":"Save","edit":"Edit","delete":"Delete","send":"Send","loading":"Loading…","retry":"Try again","empty":"Nothing here yet","quantity":"Quantity","price":"Price","available":"In stock","unavailable":"Out of stock"},
+  "chat": {"dialogs":"Conversations","online":"Online","recently":"Last seen recently","placeholder":"Type a message…","blocked":"You are blocked","sendingDisabled":"Sending messages is unavailable","block":"Block","unblock":"Unblock","newMessage":"New message"},
+  "ai": {"title":"Pharma AI","about":"Medicine information","ask":"Ask an informational question","unavailable":"The AI assistant is temporarily unavailable"},
+  "profile": {"title":"Your profile","language":"Language","myReservations":"My reservations"}
+}

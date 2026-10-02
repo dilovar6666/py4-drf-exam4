@@ -1,0 +1,10 @@
+{
+  "nav": {"search":"Поиск","leaderboard":"Рейтинги","reservations":"Брони","messages":"Сообщения","addPharmacy":"Добавить аптеку","workspace":"Рабочее место","admin":"Admin","profile":"Профиль","notifications":"Уведомления","login":"Войти","register":"Регистрация","logout":"Выйти","map":"Карта"},
+  "language": {"label":"Язык","ru":"Русский","tj":"Тоҷикӣ","en":"English"},
+  "theme": {"light":"Светлая тема","dark":"Тёмная тема","system":"Системная тема"},
+  "status": {"pending":"Ожидает","confirmed":"Подтверждена","ready":"Готова к выдаче","completed":"Завершена","cancelled":"Отменена"},
+  "common": {"pharmacy":"Аптека","medicine":"Лекарство","address":"Адрес","phone":"Телефон","hours":"Часы работы","open":"Открыто","closed":"Закрыто","allDay":"Круглосуточно","details":"Подробнее","write":"Написать","route":"Проложить маршрут","cancel":"Отменить","save":"Сохранить","edit":"Изменить","delete":"Удалить","send":"Отправить","loading":"Загрузка…","retry":"Попробовать снова","empty":"Пока ничего нет","quantity":"Количество","price":"Цена","available":"В наличии","unavailable":"Нет в наличии"},
+  "chat": {"dialogs":"Диалоги","online":"В сети","recently":"Был(а) недавно","placeholder":"Введите сообщение…","blocked":"Вы заблокированы","sendingDisabled":"Отправка сообщений недоступна","block":"Заблокировать","unblock":"Разблокировать","newMessage":"Новое сообщение"},
+  "ai": {"title":"Pharma AI","about":"Справка о препарате","ask":"Задайте справочный вопрос","unavailable":"AI-помощник временно недоступен"},
+  "profile": {"title":"Ваш профиль","language":"Язык","myReservations":"Мои брони"}
+}

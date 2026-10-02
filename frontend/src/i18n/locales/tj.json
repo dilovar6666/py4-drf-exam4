@@ -1,0 +1,10 @@
+{
+  "nav": {"search":"Ҷустуҷӯ","leaderboard":"Рейтингҳо","reservations":"Бронҳо","messages":"Паёмҳо","addPharmacy":"Илова кардани дорухона","workspace":"Ҷои кор","admin":"Admin","profile":"Профил","notifications":"Огоҳиномаҳо","login":"Ворид шудан","register":"Сабтином","logout":"Баромадан","map":"Харита"},
+  "language": {"label":"Забон","ru":"Русӣ","tj":"Тоҷикӣ","en":"English"},
+  "theme": {"light":"Мавзӯи равшан","dark":"Мавзӯи торик","system":"Мавзӯи система"},
+  "status": {"pending":"Интизорӣ","confirmed":"Тасдиқшуда","ready":"Омода","completed":"Анҷомёфта","cancelled":"Бекоршуда"},
+  "common": {"pharmacy":"Дорухона","medicine":"Дору","address":"Нишонӣ","phone":"Телефон","hours":"Соатҳои корӣ","open":"Кушода","closed":"Пӯшида","allDay":"Шабонарӯзӣ","details":"Муфассал","write":"Навиштан","route":"Масир сохтан","cancel":"Бекор кардан","save":"Нигоҳ доштан","edit":"Тағйир додан","delete":"Нест кардан","send":"Фиристодан","loading":"Бор шуда истодааст…","retry":"Аз нав кӯшиш кунед","empty":"Ҳоло чизе нест","quantity":"Миқдор","price":"Нарх","available":"Мавҷуд аст","unavailable":"Мавҷуд нест"},
+  "chat": {"dialogs":"Муколамаҳо","online":"Онлайн","recently":"Ба наздикӣ фаъол буд","placeholder":"Паём нависед…","blocked":"Шумо баста шудаед","sendingDisabled":"Фиристодани паём дастнорас аст","block":"Бастан","unblock":"Кушодан","newMessage":"Паёми нав"},
+  "ai": {"title":"Pharma AI","about":"Маълумот дар бораи дору","ask":"Саволи иттилоотӣ диҳед","unavailable":"Ёвари AI муваққатан дастнорас аст"},
+  "profile": {"title":"Профили шумо","language":"Забон","myReservations":"Бронҳои ман"}
+}
