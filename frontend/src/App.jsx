@@ -29,7 +29,7 @@ const MedicineAiAssistant = lazy(() => import("./components/MedicineAiAssistant"
 const protectedPage = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 export default function App() {
-  return <AuthProvider><NotificationProvider><div className="min-h-screen bg-[#f7f9f8] text-slate-900"><Navbar /><main><Suspense fallback={<PageState type="loading" />}><Routes>
+  return <AuthProvider><NotificationProvider><div className="app-root min-h-screen"><Navbar /><main><Suspense fallback={<PageState type="loading" />}><Routes>
     <Route path="/" element={<HomePage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/register" element={<RegisterPage />} />
