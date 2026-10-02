@@ -16,7 +16,7 @@ export default function Navbar() {
   const { unreadCount } = useNotifications();
   const [open, setOpen] = useState(false);
   const linkClass = ({ isActive }) => `focus-ring rounded-xl px-3.5 py-2 text-sm font-semibold transition ${isActive ? "bg-teal-50 text-teal-800" : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"}`;
-  const links = user ? [...publicLinks, ...privateLinks, ...(user.is_staff ? [{ to: "/admin-panel", label: "Admin" }] : [])] : publicLinks;
+  const links = user ? [...publicLinks, ...privateLinks, ...(user.role === "pharmacist" && !user.is_staff ? [{ to: "/pharmacist-workspace", label: "Рабочее место" }] : []), ...(user.is_staff ? [{ to: "/admin-panel", label: "Admin" }] : [])] : publicLinks;
 
   return <header className="sticky top-0 z-[1000] border-b border-slate-200/80 bg-white/92 backdrop-blur-xl">
     <div className="page-shell flex h-[72px] items-center justify-between gap-5">

@@ -23,6 +23,7 @@ const AdminPanelPage = lazy(() => import("./pages/AdminPanelPage"));
 const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
 const PharmacistPage = lazy(() => import("./pages/PharmacistPage"));
 const PharmacyApplicationsPage = lazy(() => import("./pages/PharmacyApplicationsPage"));
+const PharmacistWorkspacePage = lazy(() => import("./pages/PharmacistWorkspacePage"));
 const MedicineAiAssistant = lazy(() => import("./components/MedicineAiAssistant"));
 
 const protectedPage = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
@@ -38,6 +39,7 @@ export default function App() {
     <Route path="/pharmacies/:id" element={<PharmacyPage />} />
     <Route path="/profile" element={protectedPage(<ProfilePage />)} />
     <Route path="/pharmacy-applications" element={protectedPage(<PharmacyApplicationsPage />)} />
+    <Route path="/pharmacist-workspace" element={protectedPage(<PharmacistWorkspacePage />)} />
     <Route path="/reservations" element={protectedPage(<ReservationsPage />)} />
     <Route path="/chats" element={protectedPage(<ChatsPage />)} />
     <Route path="/notifications" element={protectedPage(<NotificationsPage />)} />
