@@ -21,6 +21,17 @@ class PharmacyMedicineSerializer(serializers.ModelSerializer):
         model = PharmacyMedicine
         fields = "__all__"
 
+    def validate(self, attrs):
+        pharmacy = attrs.get("pharmacy", getattr(self.instance, "pharmacy", None))
+        medicine = attrs.get("medicine", getattr(self.instance, "medicine", None))
+        if pharmacy and medicine:
+            duplicate = PharmacyMedicine.objects.filter(pharmacy=pharmacy, medicine=medicine)
+            if self.instance:
+                duplicate = duplicate.exclude(pk=self.instance.pk)
+            if duplicate.exists():
+                raise serializers.ValidationError({"medicine": "Этот препарат уже есть в остатках аптеки — измените существующую запись."})
+        return attrs
+
     def validate_pharmacy(self, pharmacy):
         request = self.context.get("request")
         if request and request.user.is_authenticated and request.user.role == "pharmacist":

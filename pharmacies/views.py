@@ -68,7 +68,11 @@ def is_pharmacy_owner(user, pharmacy_id):
 
 class PharmacyEmployeeListCreateView(generics.ListCreateAPIView):
     serializer_class = PharmacyWorkerSerializer
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         pharmacy_id = self.kwargs["pharmacy_id"]
