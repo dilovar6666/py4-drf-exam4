@@ -1,7 +1,9 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-from .models import Notification
+from django.db.models import Q
+
+from .models import Notification, StockNotification
 
 
 def push_notification(user, title, message):
@@ -22,3 +24,18 @@ def push_notification(user, title, message):
         },
     )
     return notification
+
+
+def notify_stock_available(stock):
+    subscriptions = StockNotification.objects.filter(
+        medicine=stock.medicine,
+        is_active=True,
+    ).filter(Q(pharmacy__isnull=True) | Q(pharmacy=stock.pharmacy)).select_related("user")
+    for subscription in subscriptions:
+        push_notification(
+            subscription.user,
+            "Лекарство снова в наличии",
+            f"{stock.medicine.name} доступен в аптеке {stock.pharmacy.name}.",
+        )
+        subscription.is_active = False
+        subscription.save(update_fields=("is_active",))

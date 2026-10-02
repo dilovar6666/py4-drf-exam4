@@ -1,8 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 
-from .models import Category, Medicine
+from notifications.models import Notification, StockNotification
+from pharmacies.models import Pharmacy
+
+from .models import Category, Medicine, PharmacyMedicine
 
 
 class MedicineSearchTests(TestCase):
@@ -52,3 +55,31 @@ class MedicineAiTests(TestCase):
         response = self.client.post(self.url, {"question": "Какую дозу мне принимать?"})
         self.assertEqual(response.status_code, 200)
         self.assertIn("врачу", response.data["answer"])
+
+
+class StockAvailabilityNotificationTests(APITestCase):
+    def test_zero_to_available_notifies_subscriber_once(self):
+        User = get_user_model()
+        subscriber = User.objects.create_user(username="stock-user", password="pass12345")
+        admin = User.objects.create_superuser(username="stock-admin", password="pass12345")
+        medicine = Medicine.objects.create(name="Back in stock")
+        pharmacy = Pharmacy.objects.create(
+            name="Stock Pharmacy", address="Dushanbe", latitude=38.57, longitude=68.78
+        )
+        stock = PharmacyMedicine.objects.create(
+            pharmacy=pharmacy, medicine=medicine, price=12, quantity=0
+        )
+        subscription = StockNotification.objects.create(
+            user=subscriber, medicine=medicine, pharmacy=pharmacy
+        )
+        self.client.force_authenticate(admin)
+        response = self.client.patch(
+            f"/api/pharmacy-medicines/{stock.id}/", {"quantity": 4}
+        )
+        self.assertEqual(response.status_code, 200)
+        subscription.refresh_from_db()
+        self.assertFalse(subscription.is_active)
+        self.assertEqual(
+            Notification.objects.filter(user=subscriber, title="Лекарство снова в наличии").count(),
+            1,
+        )

@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from medicines.models import PharmacyMedicine
 from notifications.realtime import push_notification
+from notifications.realtime import notify_stock_available
 
 from .models import Reservation
 from .serializers import ReservationSerializer
@@ -70,6 +71,9 @@ class ReservationDetailView(generics.RetrieveUpdateDestroyAPIView):
                 stock = PharmacyMedicine.objects.select_for_update().get(
                     pk=instance.pharmacy_medicine_id
                 )
+                was_empty = stock.quantity == 0
                 stock.quantity += instance.quantity
                 stock.save(update_fields=("quantity", "updated_at"))
+                if was_empty and stock.quantity > 0:
+                    notify_stock_available(stock)
             instance.delete()

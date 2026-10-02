@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from medicines.models import PharmacyMedicine
+from notifications.realtime import notify_stock_available
 
 from .models import Reservation
 
@@ -65,6 +66,9 @@ class ReservationSerializer(serializers.ModelSerializer):
             reservation = super().update(instance, validated_data)
             if previous_status != Reservation.Status.CANCELLED and reservation.status == Reservation.Status.CANCELLED:
                 stock = PharmacyMedicine.objects.select_for_update().get(pk=reservation.pharmacy_medicine_id)
+                was_empty = stock.quantity == 0
                 stock.quantity += reservation.quantity
                 stock.save(update_fields=("quantity", "updated_at"))
+                if was_empty and stock.quantity > 0:
+                    notify_stock_available(stock)
             return reservation
