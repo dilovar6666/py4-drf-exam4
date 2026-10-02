@@ -1,12 +1,14 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
-from rest_framework.permissions import AllowAny, BasePermission, IsAdminUser, SAFE_METHODS
+from rest_framework.permissions import AllowAny, BasePermission, IsAdminUser, IsAuthenticated, SAFE_METHODS
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .filters import filter_medicines, get_available_medicine_pharmacies
 from .models import Category, Medicine, PharmacyMedicine, PriceHistory
 from .serializers import *
+from .ai import generate_medicine_answer
 
 
 class IsAdminOrPharmacist(BasePermission):
@@ -129,3 +131,21 @@ class MedicinePharmaciesView(APIView):
         pharmacy_medicines = get_available_medicine_pharmacies(medicine_id)
         serializer = PharmacyMedicineSerializer(pharmacy_medicines, many=True)
         return Response(serializer.data)
+
+
+class MedicineAiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, medicine_id):
+        medicine = get_object_or_404(Medicine, pk=medicine_id)
+        question = str(request.data.get("question", "")).strip()
+        if not question:
+            return Response({"question": "Введите вопрос."}, status=status.HTTP_400_BAD_REQUEST)
+        if len(question) > 1000:
+            return Response({"question": "Вопрос слишком длинный."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            answer = generate_medicine_answer(medicine, question)
+        except RuntimeError as exc:
+            detail = "AI-помощник временно недоступен. Проверьте настройку GEMINI_API_KEY." if "API_KEY" in str(exc) else "AI-помощник временно недоступен. Попробуйте позже."
+            return Response({"detail": detail}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response({"answer": answer, "medicine": medicine.id})

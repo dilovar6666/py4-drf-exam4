@@ -9,6 +9,7 @@ urlpatterns = [
     path("medicines/search/", MedicineSearchView.as_view()),
     path("medicines/barcode/<str:barcode>/", MedicineBarcodeView.as_view()),
     path("medicines/<int:medicine_id>/pharmacies/", MedicinePharmaciesView.as_view()),
+    path("ai/medicines/<int:medicine_id>/ask/", MedicineAiView.as_view()),
     path("medicines/<int:pk>/", MedicineDetailView.as_view()),
     path("pharmacy-medicines/", PharmacyMedicineListCreateView.as_view()),
     path("pharmacy-medicines/<int:pk>/", PharmacyMedicineDetailView.as_view()),

@@ -23,6 +23,7 @@ const AdminPanelPage = lazy(() => import("./pages/AdminPanelPage"));
 const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
 const PharmacistPage = lazy(() => import("./pages/PharmacistPage"));
 const PharmacyApplicationsPage = lazy(() => import("./pages/PharmacyApplicationsPage"));
+const MedicineAiAssistant = lazy(() => import("./components/MedicineAiAssistant"));
 
 const protectedPage = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
@@ -33,7 +34,7 @@ export default function App() {
     <Route path="/register" element={<RegisterPage />} />
     <Route path="/leaderboard" element={<LeaderboardPage />} />
     <Route path="/pharmacists/:id" element={<PharmacistPage />} />
-    <Route path="/medicines/:id" element={<MedicinePage />} />
+    <Route path="/medicines/:id" element={<><MedicinePage /><MedicineAiAssistant /></>} />
     <Route path="/pharmacies/:id" element={<PharmacyPage />} />
     <Route path="/profile" element={protectedPage(<ProfilePage />)} />
     <Route path="/pharmacy-applications" element={protectedPage(<PharmacyApplicationsPage />)} />
