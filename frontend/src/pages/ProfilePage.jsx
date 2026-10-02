@@ -1,14 +1,42 @@
-import { AtSign, Bell, CalendarCheck, MessageCircle, Phone, ShieldCheck } from "lucide-react";
+import { AtSign, Bell, CalendarCheck, Camera, MessageCircle, Phone, ShieldCheck, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { mediaUrl } from "../api/axios";
+import api, { apiErrorMessage, mediaUrl } from "../api/axios";
 import PageHeader from "../components/PageHeader";
 import Avatar from "../components/ui/Avatar";
+import Button from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
 import useAuth from "../context/useAuth";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
-  return <div className="page-shell py-10 pb-28 sm:py-14"><PageHeader eyebrow="Личный кабинет" title="Ваш профиль" description="Контактные данные и быстрый доступ к важным разделам PharmaMap." /><div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr]"><Card className="overflow-hidden"><div className="h-28 bg-teal-800 soft-grid" /><CardContent className="relative px-6 pb-7"><Avatar src={user.avatar ? mediaUrl(user.avatar) : undefined} fallback={user.username?.slice(0, 2).toUpperCase()} className="-mt-12 size-24 border-4 border-white text-2xl shadow-lg" /><h2 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950">{user.username}</h2><p className="mt-1 text-sm text-slate-500">Участник PharmaMap</p><span className="mt-4 inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800"><ShieldCheck className="size-4" />{user.role === "pharmacist" ? "Фармацевт" : "Пользователь"}</span></CardContent></Card><div className="space-y-6"><Card><CardContent className="p-6"><h3 className="text-lg font-extrabold text-slate-950">Контактные данные</h3><dl className="mt-5 grid gap-3 sm:grid-cols-2"><ProfileItem icon={AtSign} label="Email" value={user.email || "Не указан"} /><ProfileItem icon={Phone} label="Телефон" value={user.phone || "Не указан"} /></dl></CardContent></Card><div className="grid gap-3 sm:grid-cols-3"><QuickLink to="/reservations" icon={CalendarCheck} title="Мои брони" text="Статусы заказов" /><QuickLink to="/chats" icon={MessageCircle} title="Сообщения" text="Диалоги с аптеками" /><QuickLink to="/notifications" icon={Bell} title="Уведомления" text="Важные события" /></div></div></div></div>;
+  const { user, refreshUser } = useAuth();
+  const inputRef = useRef(null);
+  const [preview, setPreview] = useState("");
+  const [state, setState] = useState({});
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+  async function upload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!/^image\/(png|jpe?g)$/.test(file.type)) { setState({ error: "Выберите изображение PNG или JPEG." }); return; }
+    if (preview) URL.revokeObjectURL(preview);
+    const nextPreview = URL.createObjectURL(file);
+    setPreview(nextPreview); setState({ loading: true });
+    const body = new FormData(); body.append("avatar", file);
+    try {
+      await api.patch("auth/me/", body);
+      await refreshUser(); setPreview(""); setState({ success: "Аватар обновлён." });
+    } catch (error) { setState({ error: apiErrorMessage(error, "Не удалось загрузить аватар.") }); }
+  }
+
+  async function removeAvatar() {
+    setState({ loading: true });
+    try { await api.patch("auth/me/", { avatar: null }); await refreshUser(); setPreview(""); setState({ success: "Аватар удалён." }); }
+    catch (error) { setState({ error: apiErrorMessage(error, "Не удалось удалить аватар.") }); }
+  }
+
+  const avatarSource = preview || (user.avatar ? mediaUrl(user.avatar) : undefined);
+  return <div className="page-shell py-10 pb-28 sm:py-14"><PageHeader eyebrow="Личный кабинет" title="Ваш профиль" description="Контактные данные, аватар и быстрый доступ к важным разделам PharmaMap." /><div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr]"><Card className="overflow-hidden"><div className="h-28 bg-teal-800 soft-grid" /><CardContent className="relative px-6 pb-7"><Avatar src={avatarSource} fallback={user.username?.slice(0, 2).toUpperCase()} className="-mt-12 size-24 border-4 border-white text-2xl shadow-lg" /><div className="mt-4 flex flex-wrap gap-2"><Button type="button" size="sm" variant="secondary" onClick={() => inputRef.current?.click()} disabled={state.loading}><Camera className="size-4" />{user.avatar ? "Изменить" : "Добавить"}</Button>{user.avatar && <Button type="button" size="sm" variant="ghost" onClick={removeAvatar} disabled={state.loading}><Trash2 className="size-4 text-red-600" />Удалить</Button>}<input ref={inputRef} type="file" accept="image/png,image/jpeg" onChange={upload} className="hidden" /></div>{state.error && <p className="mt-3 text-sm text-red-600">{state.error}</p>}{state.success && <p className="mt-3 text-sm text-emerald-700">{state.success}</p>}<h2 className="mt-5 text-2xl font-extrabold tracking-tight text-slate-950">{user.username}</h2><p className="mt-1 text-sm text-slate-500">Участник PharmaMap</p><span className="mt-4 inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800"><ShieldCheck className="size-4" />{user.role === "pharmacist" ? "Фармацевт" : "Пользователь"}</span></CardContent></Card><div className="space-y-6"><Card><CardContent className="p-6"><h3 className="text-lg font-extrabold text-slate-950">Контактные данные</h3><dl className="mt-5 grid gap-3 sm:grid-cols-2"><ProfileItem icon={AtSign} label="Email" value={user.email || "Не указан"} /><ProfileItem icon={Phone} label="Телефон" value={user.phone || "Не указан"} /></dl></CardContent></Card><div className="grid gap-3 sm:grid-cols-3"><QuickLink to="/reservations" icon={CalendarCheck} title="Мои брони" text="Статусы заказов" /><QuickLink to="/chats" icon={MessageCircle} title="Сообщения" text="Диалоги с аптеками" /><QuickLink to="/notifications" icon={Bell} title="Уведомления" text="Важные события" /></div></div></div></div>;
 }
 function ProfileItem({ icon: Icon, label, value }) { return <div className="rounded-2xl bg-slate-50 p-4"><dt className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400"><Icon className="size-4 text-teal-600" />{label}</dt><dd className="mt-2 break-all font-semibold text-slate-800">{value}</dd></div>; }
 function QuickLink({ to, icon: Icon, title, text }) { return <Link to={to} className="focus-ring group rounded-[1.25rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-teal-200 hover:shadow-lg"><Icon className="size-5 text-teal-700" /><h3 className="mt-6 font-extrabold text-slate-900 group-hover:text-teal-800">{title}</h3><p className="mt-1 text-xs text-slate-500">{text}</p></Link>; }
