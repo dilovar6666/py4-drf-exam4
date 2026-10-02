@@ -1,5 +1,14 @@
 # PharmaMap Stitch design direction
 
+## Mobile-first pass — 2026-10-02
+
+Existing mobile reference screens used for this pass:
+
+- Mobile Map Home / 390x844: `f1efef13a9a8484ba5feec2dc010968e`
+- Mobile Map + Pharmacy Sheet / 390x844: `f4f11f7eb96d406e945eb45dd9f3942c`
+
+Selected direction: full map canvas, floating search and filters, touch-safe controls, collapsed/expanded pharmacy sheet, and five-item safe-area bottom navigation. The React implementation applies the same app-shell language to Messages, Admin drawer, dialogs, AI, and content pages. A new Stitch mobile variant request was attempted during this pass, but the connector returned a network failure, so no unverified new IDs are claimed.
+
 Stitch project: `projects/2059521797541322910`
 
 Design system: `assets/17285986900585481743` — **PharmaMap Calm Clinical Precision**
