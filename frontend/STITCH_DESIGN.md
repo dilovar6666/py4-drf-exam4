@@ -76,3 +76,14 @@ Stitch was run again with `mcp__stitch__generate_screen_from_text`, project `205
 - Gemini Pharma AI medicine assistant — `f954254277ca431cb9b20f914d47d891`
 
 The selected visual language keeps Calm Clinical Precision but makes the admin surfaces denser: grouped navigation, compact KPI hierarchy, sticky data surfaces, quiet borders and clear operational queues. Dashboard was intentionally separated from Analytics. The React implementation uses the operational overview and attention queue from Dashboard, the factual chart/ranking composition from Analytics, the approval decision surface from Pharmacy Applications, the two-pane realtime model from Chat, and the contextual safety notice plus conversation sheet from Pharma AI. Dark mode adopts the proposed charcoal layers (`#0c1114`, `#12191d`, `#182126`) rather than pure black. Unsupported Stitch concepts such as fictional telemetry, Russian medical registry fields, invented people, rouble values and accounting profit were deliberately not implemented.
+
+## Integration UX fixes — 2026-10-02
+
+Stitch was used only for the four audited surfaces requested in this iteration, with the existing project, design system and `GEMINI_3_5_FLASH_LITE`:
+
+- Admin Sidebar + Navbar — `a274a6bec717440c8f28970b72f7257d`
+- Compact Analytics — `2fe55bb970ad4fd5ad689abc3c77c71e`
+- Pharmacist Employees — `61e616cf95394f538839947d2d72b7fa`
+- Add Pharmacy with Map — `f8f5debbcbdd44b5afb6aa1b2dbecff6`
+
+The React implementation takes the compact transparent inactive navigation rows, unified navbar/sidebar surface tokens, five-KPI analytics header, balanced two-column analytics grid, pharmacy-aware low-stock rows, owner-only employee actions, and dominant click/drag map picker. Generated fictional telemetry, employee statuses, registry/audit steps and sample organizations were intentionally excluded because the API does not provide them.
