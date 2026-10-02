@@ -12,6 +12,7 @@ import NotificationProvider from "./context/NotificationContext";
 const HomePage = lazy(() => import("./pages/HomePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const VerifyEmailPage = lazy(() => import("./pages/VerifyEmailPage"));
 const MedicinePage = lazy(() => import("./pages/MedicinePage"));
 const PharmacyPage = lazy(() => import("./pages/PharmacyPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
@@ -33,6 +34,7 @@ export default function App() {
     <Route path="/" element={<HomePage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/register" element={<RegisterPage />} />
+    <Route path="/verify-email" element={<VerifyEmailPage />} />
     <Route path="/leaderboard" element={<LeaderboardPage />} />
     <Route path="/pharmacists/:id" element={<PharmacistPage />} />
     <Route path="/medicines/:id" element={<><MedicinePage /><MedicineAiAssistant /></>} />

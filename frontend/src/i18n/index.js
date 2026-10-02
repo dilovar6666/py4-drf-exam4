@@ -3,12 +3,19 @@ import { initReactI18next } from "react-i18next";
 import ru from "./locales/ru.json";
 import tj from "./locales/tj.json";
 import en from "./locales/en.json";
+import verificationRu from "./locales/verification.ru.json";
+import verificationTj from "./locales/verification.tj.json";
+import verificationEn from "./locales/verification.en.json";
 
 const STORAGE_KEY = "pharmamap-language";
 const saved = localStorage.getItem(STORAGE_KEY);
 
 i18n.use(initReactI18next).init({
-  resources: { ru: { translation: ru }, tj: { translation: tj }, en: { translation: en } },
+  resources: {
+    ru: { translation: { ...ru, verification: verificationRu } },
+    tj: { translation: { ...tj, verification: verificationTj } },
+    en: { translation: { ...en, verification: verificationEn } },
+  },
   ns: ["translation"],
   defaultNS: "translation",
   lng: ["ru", "tj", "en"].includes(saved) ? saved : "ru",

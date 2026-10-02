@@ -1,8 +1,9 @@
 import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/";
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
-export const WS_URL = BACKEND_URL.replace(/^http/, "ws");
+const runtimeOrigin = typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:5173";
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || runtimeOrigin;
+export const API_URL = import.meta.env.VITE_API_URL || `${BACKEND_URL}/api/`;
+export const WS_URL = import.meta.env.VITE_WS_URL || BACKEND_URL.replace(/^http/, "ws");
 
 const api = axios.create({ baseURL: API_URL, timeout: 15000 });
 let refreshPromise = null;

@@ -1,0 +1,1 @@
+{"title":"Confirm your email","description":"Enter the 6-digit code sent to {{email}}.","code":"Verification code","verify":"Verify email","resend":"Resend code","sent":"A new code was sent.","verified":"Email confirmed. You can now sign in.","invalid":"The code is invalid or expired.","cooldown":"Resend in {{seconds}}s.","back":"Back to sign in"}
