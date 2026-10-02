@@ -6,6 +6,7 @@ from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import AccessToken
 
 from config.asgi import application
+from notifications.models import Notification
 from notifications.realtime import push_notification
 
 
@@ -20,6 +21,17 @@ class NotificationPermissionTests(APITestCase):
             {"user": user.id, "title": "Fake", "message": "Fake system event"},
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_newest_notifications_are_first(self):
+        user = get_user_model().objects.create_user(
+            username="notification-order", password="pass12345"
+        )
+        older = Notification.objects.create(user=user, title="Older", message="First")
+        newer = Notification.objects.create(user=user, title="Newer", message="Second")
+        self.client.force_authenticate(user)
+        response = self.client.get("/api/notifications/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.data], [newer.id, older.id])
 
 
 class NotificationWebSocketTests(TransactionTestCase):
