@@ -32,6 +32,16 @@ class ReviewPermissionTests(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Review.objects.filter(user=self.user, pharmacy=self.pharmacy).count(), 1)
 
+    def test_every_rating_from_one_to_five_is_accepted(self):
+        User = get_user_model()
+        for rating in range(1, 6):
+            user = User.objects.create_user(username=f"rating-{rating}", password="pass12345")
+            self.client.force_authenticate(user)
+            response = self.client.post(
+                "/api/reviews/", {"pharmacy": self.pharmacy.id, "rating": rating}
+            )
+            self.assertEqual(response.status_code, 201, response.data)
+
 
 class PharmacistReviewTests(APITestCase):
     def test_one_user_can_leave_only_one_review_per_pharmacist(self):

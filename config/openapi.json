@@ -3434,6 +3434,23 @@
           }
         }
       }
+    },
+    "/api/pharmacy-applications/": {
+      "get": {"operationId": "pharmacy_applications_list", "tags": ["pharmacy applications"], "security": [{"jwtAuth": []}], "responses": {"200": {"description": "Own applications, or all applications for staff"}}},
+      "post": {"operationId": "pharmacy_applications_create", "tags": ["pharmacy applications"], "security": [{"jwtAuth": []}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object"}}}}, "responses": {"201": {"description": "Application created"}}}
+    },
+    "/api/pharmacy-applications/{id}/approve/": {
+      "post": {"operationId": "pharmacy_applications_approve", "tags": ["pharmacy applications"], "security": [{"jwtAuth": []}], "parameters": [{"in": "path", "name": "id", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "Application approved; pharmacy and worker link created once"}, "403": {"description": "Staff only"}}}
+    },
+    "/api/pharmacy-applications/{id}/reject/": {
+      "post": {"operationId": "pharmacy_applications_reject", "tags": ["pharmacy applications"], "security": [{"jwtAuth": []}], "parameters": [{"in": "path", "name": "id", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "Application rejected"}, "403": {"description": "Staff only"}}}
+    },
+    "/api/chat-blocks/": {
+      "get": {"operationId": "chat_blocks_list", "tags": ["chat"], "security": [{"jwtAuth": []}], "responses": {"200": {"description": "Visible chat blocks"}}},
+      "post": {"operationId": "chat_blocks_create", "tags": ["chat"], "security": [{"jwtAuth": []}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["chat", "blocked"], "properties": {"chat": {"type": "integer"}, "blocked": {"type": "integer"}}}}}}, "responses": {"201": {"description": "Participant blocked"}}}
+    },
+    "/api/ai/medicines/{medicine_id}/ask/": {
+      "post": {"operationId": "medicine_ai_ask", "tags": ["AI"], "security": [{"jwtAuth": []}], "parameters": [{"in": "path", "name": "medicine_id", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["question"], "properties": {"question": {"type": "string", "maxLength": 1000}}}}}}, "responses": {"200": {"description": "Neutral informational answer"}, "503": {"description": "Gemini is not configured or unavailable"}}}
     }
   },
   "components": {

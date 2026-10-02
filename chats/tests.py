@@ -87,6 +87,19 @@ class ChatPermissionTests(APITestCase):
         delete = self.client.delete(f"/api/chat-blocks/{response.data['id']}/")
         self.assertEqual(delete.status_code, 204)
 
+    def test_admin_can_block_and_unblock_chat_participant(self):
+        admin = get_user_model().objects.create_superuser(
+            username="chat-admin", password="pass12345"
+        )
+        self.client.force_authenticate(admin)
+        response = self.client.post(
+            "/api/chat-blocks/", {"chat": self.chat.id, "blocked": self.user.id}
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["blocker"], admin.id)
+        delete = self.client.delete(f"/api/chat-blocks/{response.data['id']}/")
+        self.assertEqual(delete.status_code, 204)
+
 
 class ChatWebSocketTests(TransactionTestCase):
     reset_sequences = True
