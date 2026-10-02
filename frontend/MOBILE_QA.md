@@ -1,5 +1,19 @@
 # PharmaMap Mobile QA
 
+## Authenticated QA (Edge CDP, 2026-10-02)
+
+The authenticated pass used the real Microsoft Edge executable listed below. Login was verified against the running API for `user1/demo12345`, `pharmacist1/demo12345`, and `admin/admin`. The seeded database has an owner worker (`apteca22`), but no valid password for that existing account was available; no password was changed or invented, so owner-only flows remain explicitly unverified.
+
+| Role | Viewports | Result |
+| --- | --- | --- |
+| User | 360x800, 390x844, 430x932, 768x1024, 1440x900 | PASS: Home/map, profile, reservations, messages, notifications, applications, leaderboard; no overflow, console errors, or 4xx/5xx responses |
+| Pharmacist | same | PASS: workspace, reservations, chats, notifications, profile; data rendered after API completion |
+| Admin/staff | same | PASS: dashboard, profile, notifications; dashboard rendered after API completion |
+
+Additional real interactions: authenticated RU -> TJ language change without reload (localStorage persisted `tj`), authenticated theme switch to dark, and Edge screenshots at 390x844/430x932. A confirmed mobile chat bug was fixed: the block/unblock header action now shows only its icon on mobile (desktop keeps the text label), preventing clipping at 390px.
+
+The system keyboard was not emulated; viewport resize/fixed composer behavior was checked instead. Owner-only employee management, two-profile presence timeout, reservation creation/cancellation, real AI request, avatar upload, and destructive admin CRUD are not claimed as completed because owner credentials or disposable-data interaction were unavailable/safely avoided.
+
 Дата: 2026-10-02
 
 ## Реальный браузер

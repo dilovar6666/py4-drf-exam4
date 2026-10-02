@@ -83,7 +83,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .chat-composer textarea { max-height: 7rem; }
   .chat-header { min-height: 64px; padding: .65rem .75rem; }
   .chat-header button { min-height: 40px; }
-  .chat-header button:last-child { max-width: 44px; overflow: hidden; padding-inline: .5rem; }
+  .chat-header button:last-child { max-width: 44px; overflow: hidden; padding-inline: .5rem; font-size: 0; }
   .chat-header button:last-child svg + * { display: none; }
   .page-shell:has(.chat-shell) { width: 100%; padding-top: 0; }
   .page-shell:has(.chat-shell) > header { display: none; }
