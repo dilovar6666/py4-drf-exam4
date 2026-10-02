@@ -46,11 +46,11 @@ function MapControls({ map, pharmacies, layer, onLayer, satelliteAvailable, onLo
   }
   const control = "grid size-10 place-items-center border-b border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 hover:text-teal-700 last:border-b-0";
   return <>
-    <div className="absolute right-3 top-3 z-[500] flex overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-[0_8px_28px_rgba(15,23,42,.18)]">
+    <div className="map-layer-toggle absolute right-3 top-3 z-[500] flex overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-[0_8px_28px_rgba(15,23,42,.18)]">
       <button className={`rounded-lg px-3 py-2 text-xs font-bold transition ${layer === "map" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`} onClick={() => onLayer("map")}>Карта</button>
       <button disabled={!satelliteAvailable} className={`rounded-lg px-3 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-40 ${layer === "satellite" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`} title={satelliteAvailable ? "Спутниковый слой" : "Добавьте VITE_MAPTILER_KEY, чтобы включить спутник"} onClick={() => onLayer("satellite")}>Спутник</button>
     </div>
-    <div className="absolute right-3 top-1/2 z-[500] -translate-y-1/2 overflow-hidden rounded-xl border border-slate-200 shadow-[0_8px_28px_rgba(15,23,42,.18)]">
+    <div className="map-controls absolute right-3 top-1/2 z-[500] -translate-y-1/2 overflow-hidden rounded-xl border border-slate-200 shadow-[0_8px_28px_rgba(15,23,42,.18)]">
       <button className={control} onClick={() => map.zoomIn()} aria-label="Приблизить"><Plus className="size-5" /></button>
       <button className={control} onClick={() => map.zoomOut()} aria-label="Отдалить"><Minus className="size-5" /></button>
       <button className={control} onClick={locate} aria-label="Моё местоположение"><LocateFixed className="size-5" /></button>

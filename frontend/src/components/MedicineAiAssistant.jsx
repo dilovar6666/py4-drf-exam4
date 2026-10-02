@@ -36,7 +36,7 @@ export default function MedicineAiAssistant() {
 
   return <>
     <Button type="button" onClick={() => setOpen(true)} className="fixed bottom-24 right-4 z-[700] rounded-2xl shadow-xl sm:bottom-6 sm:right-6"><Sparkles className="size-4" />Спросить Pharma AI</Button>
-    <Dialog open={open} onOpenChange={setOpen}><DialogContent className="flex max-h-[82dvh] max-w-2xl flex-col overflow-hidden p-0">
+    <Dialog open={open} onOpenChange={setOpen}><DialogContent className="flex max-h-[82dvh] max-w-2xl flex-col overflow-hidden p-0 max-sm:h-[100dvh] max-sm:max-h-none max-sm:rounded-none">
       <header className="border-b border-slate-200 p-6 pr-14"><div className="flex items-center gap-3"><span className="grid size-11 place-items-center rounded-2xl bg-teal-50 text-teal-700"><Bot className="size-5" /></span><div><DialogTitle>Pharma AI</DialogTitle><DialogDescription className="mt-0">Справка о {medicine?.name || "препарате"}</DialogDescription></div></div></header>
       <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50 p-5">
         {!messages.length && <div className="rounded-2xl border border-teal-100 bg-white p-5"><p className="font-bold text-slate-900">Что можно спросить?</p><p className="mt-2 text-sm leading-6 text-slate-600">О действующем веществе, форме выпуска, производителе и общей справочной информации из карточки препарата.</p></div>}
